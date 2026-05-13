@@ -1294,6 +1294,54 @@ INSERT INTO `users` (`id`, `user_name`, `email`, `password`, `role`, `phone_numb
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `campus_drives`
+--
+
+CREATE TABLE `campus_drives` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `organizer` varchar(255) NOT NULL,
+  `venue` varchar(255) NOT NULL,
+  `city` varchar(100) NOT NULL,
+  `start_date` date NOT NULL,
+  `end_date` date NOT NULL,
+  `capacity_per_day` int(11) DEFAULT 100,
+  `status` enum('draft','live','closed') DEFAULT 'draft',
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_nopad_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `campus_drive_companies`
+--
+
+CREATE TABLE `campus_drive_companies` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `drive_id` int(10) UNSIGNED NOT NULL,
+  `recruiter_id` int(10) UNSIGNED NOT NULL,
+  `status` enum('invited','accepted','rejected') DEFAULT 'invited'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_nopad_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `campus_drive_applications`
+--
+
+CREATE TABLE `campus_drive_applications` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `drive_id` int(10) UNSIGNED NOT NULL,
+  `student_id` int(10) UNSIGNED NOT NULL,
+  `recruiter_id` int(10) UNSIGNED NOT NULL,
+  `status` enum('applied','shortlisted','rejected','selected') DEFAULT 'applied',
+  `applied_at` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_nopad_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Structure for view `student_profile`
 --
 DROP TABLE IF EXISTS `student_profile`;
@@ -1593,6 +1641,29 @@ ALTER TABLE `users`
   ADD KEY `idx_last_activity` (`last_activity`);
 
 --
+-- Indexes for table `campus_drives`
+--
+ALTER TABLE `campus_drives`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `campus_drive_companies`
+--
+ALTER TABLE `campus_drive_companies`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `drive_id` (`drive_id`),
+  ADD KEY `recruiter_id` (`recruiter_id`);
+
+--
+-- Indexes for table `campus_drive_applications`
+--
+ALTER TABLE `campus_drive_applications`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `drive_id` (`drive_id`),
+  ADD KEY `student_id` (`student_id`),
+  ADD KEY `recruiter_id` (`recruiter_id`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -1831,6 +1902,24 @@ ALTER TABLE `users`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
 
 --
+-- AUTO_INCREMENT for table `campus_drives`
+--
+ALTER TABLE `campus_drives`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `campus_drive_companies`
+--
+ALTER TABLE `campus_drive_companies`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `campus_drive_applications`
+--
+ALTER TABLE `campus_drive_applications`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
 -- Constraints for dumped tables
 --
 
@@ -2013,6 +2102,22 @@ ALTER TABLE `subscriptions`
 --
 ALTER TABLE `transactions`
   ADD CONSTRAINT `transactions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `campus_drive_companies`
+--
+ALTER TABLE `campus_drive_companies`
+  ADD CONSTRAINT `campus_drive_companies_drive_id_fk` FOREIGN KEY (`drive_id`) REFERENCES `campus_drives` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `campus_drive_companies_recruiter_id_fk` FOREIGN KEY (`recruiter_id`) REFERENCES `recruiter_profiles` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `campus_drive_applications`
+--
+ALTER TABLE `campus_drive_applications`
+  ADD CONSTRAINT `campus_drive_applications_drive_id_fk` FOREIGN KEY (`drive_id`) REFERENCES `campus_drives` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `campus_drive_applications_student_id_fk` FOREIGN KEY (`student_id`) REFERENCES `student_profiles` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `campus_drive_applications_recruiter_id_fk` FOREIGN KEY (`recruiter_id`) REFERENCES `recruiter_profiles` (`id`) ON DELETE CASCADE;
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
