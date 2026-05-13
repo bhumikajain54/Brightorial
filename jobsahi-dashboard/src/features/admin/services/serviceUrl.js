@@ -41,6 +41,15 @@ const service = {
     getCourses: '/courses/courses.php',
     getJobDetail: '/jobs/job-detail.php',
 
+    //campus drive
+    getCampusDrives: '/campus/get_campus_drives.php',
+    getCampusDriveDetails: '/campus/get_campus_drive_details.php',
+    createCampusDrive: '/campus/create_campus_drive.php',
+    updateCampusDrive: '/campus/update_campus_drive.php',
+    getCampusDriveApplications: '/campus/get_campus_drive_applications.php',
+    getCampusDriveStats: '/campus/get_campus_drive_stats.php',
+
+
 }
 
 export default service;
