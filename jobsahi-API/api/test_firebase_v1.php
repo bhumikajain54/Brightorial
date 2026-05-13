@@ -26,7 +26,7 @@ if (file_exists($serviceAccountPath)) {
         // Use reflection to access private method for testing
         $reflection = new ReflectionClass('FirebaseHelperV1');
         $method = $reflection->getMethod('getAccessToken');
-        $method->setAccessible(true);
+
         
         $accessToken = $method->invoke(null);
         
