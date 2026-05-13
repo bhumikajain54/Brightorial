@@ -4,9 +4,10 @@ require_once __DIR__ . '/../cors.php';
 $drive_id = $_GET['drive_id'] ?? null;
 
 try {
-    $query = "SELECT a.*, sp.name as student_name, rp.company_name 
+    $query = "SELECT a.*, u.user_name as student_name, rp.company_name 
               FROM campus_drive_applications a
               JOIN student_profiles sp ON a.student_id = sp.id
+              JOIN users u ON sp.user_id = u.id
               JOIN recruiter_profiles rp ON a.recruiter_id = rp.id";
     
     if ($drive_id) {

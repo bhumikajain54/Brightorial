@@ -20,9 +20,10 @@ try {
     }
 
     // Get companies
-    $stmt = $pdo->prepare("SELECT c.*, rp.company_name, rp.contact_person 
+    $stmt = $pdo->prepare("SELECT c.*, rp.company_name, u.user_name as contact_person 
                           FROM campus_drive_companies c
                           JOIN recruiter_profiles rp ON c.recruiter_id = rp.id
+                          JOIN users u ON rp.user_id = u.id
                           WHERE c.drive_id = :id");
     $stmt->execute(['id' => $drive_id]);
     $companies = $stmt->fetchAll();
