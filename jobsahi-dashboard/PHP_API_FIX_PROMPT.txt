@@ -1,0 +1,121 @@
+URGENT FIX NEEDED: PHP API is throwing SQL error: "Unknown column 'i.job_id' in 'ON'"
+
+The error shows that the `interviews` table does NOT have a `job_id` column directly.
+
+CURRENT CODE:
+```php
+<?php
+// add_interview_panel.php - Add or update interview panel feedback
+require_once '../cors.php';
+require_once '../db.php';
+
+$decoded = authenticateJWT(['admin', 'recruiter', 'institute', 'student']); 
+$user_id = $decoded['user_id'];
+$user_role = strtolower($decoded['role'] ?? '');
+
+$data = json_decode(file_get_contents("php://input"), true);
+
+$interview_id   = intval($data['interview_id'] ?? 0);
+$panelist_name  = trim($data['panelist_name'] ?? '');
+$feedback       = trim($data['feedback'] ?? '');
+$rating         = isset($data['rating']) ? floatval($data['rating']) : 0;
+$notes          = trim($data['notes'] ?? '');
+$admin_action   = "approved";
+$created_at     = date('Y-m-d H:i:s');
+
+if ($interview_id <= 0) {
+    echo json_encode(["status" => false, "message" => "Interview ID is required"]);
+    exit();
+}
+
+if (empty($panelist_name) || empty($feedback)) {
+    echo json_encode(["status" => false, "message" => "Panelist name and feedback are required"]);
+    exit();
+}
+
+try {
+    // 🔹 If recruiter, ensure they own this interview
+    if ($user_role === 'recruiter') {
+        // Step 1: Get recruiter_profile_id from logged-in user_id
+        $rp = $conn->prepare("SELECT id FROM recruiter_profiles WHERE user_id = ?");
+        $rp->bind_param("i", $user_id);
+        $rp->execute();
+        $rp_res = $rp->get_result();
+        
+        if ($rp_res->num_rows === 0) {
+            echo json_encode(["status" => false, "message" => "Recruiter profile not found"]);
+            exit();
+        }
+
+        $recruiter_profile_id = intval($rp_res->fetch_assoc()['id']);
+
+        // Step 2: Now verify interview ownership using recruiter_profile_id
+        $check = $conn->prepare("
+            SELECT i.id 
+            FROM interviews i
+            JOIN applications a ON i.application_id = a.id
+            JOIN jobs j ON a.job_id = j.id
+            WHERE i.id = ? AND j.recruiter_id = ?
+        ");
+        $check->bind_param("ii", $interview_id, $recruiter_profile_id);
+        $check->execute();
+        $result = $check->get_result();
+
+        if ($result->num_rows === 0) {
+            echo json_encode([
+                "status" => false,
+                "message" => "You are not authorized to add panel feedback for this interview"
+            ]);
+            exit();
+        }
+    }
+
+    // Rest of the code...
+} catch (Throwable $e) {
+    echo json_encode([
+        "status" => false,
+        "message" => "Server error: " . $e->getMessage()
+    ]);
+}
+?>
+```
+
+CURRENT ERROR:
+"Unknown column 'i.job_id' in 'ON'" - This means the `interviews` table does NOT have `job_id` column.
+
+PROBLEM:
+The ownership verification query is trying to use `i.job_id` which doesn't exist. The query structure doesn't match the actual database schema.
+
+When interviews are scheduled, the payload contains:
+- `student_id`
+- `job_id` 
+- `scheduled_at`
+- `mode`
+- `location`
+- `status`
+
+But the `interviews` table structure is different - it might have:
+- `id`
+- `student_id` 
+- `application_id` (might be NULL)
+- `scheduled_at`
+- `mode`
+- `location`
+- `status`
+- `recruiter_id` (might exist)
+- NO `job_id` column directly
+
+REQUIREMENTS:
+1. Fix the ownership verification query - DO NOT use `i.job_id` as it doesn't exist
+2. The query should check if the interview belongs to the logged-in recruiter
+3. Provide multiple query options to try:
+   - Option 1: If `interviews` table has `recruiter_id` column directly
+   - Option 2: If `interviews` table has `application_id`, join: interviews -> applications -> jobs
+   - Option 3: If `interviews` table has `student_id`, join: interviews -> applications (via student_id) -> jobs
+   - Option 4: If `interviews` table has both `student_id` and needs to find job via applications table
+4. Add proper error logging with the actual query being executed
+5. Keep the same security - only allow recruiter to add feedback for their own interviews
+6. Handle case where `application_id` might be NULL
+
+Please provide the complete corrected PHP code with all query options clearly commented, so I can test which one works with my database structure. Make sure NO query uses `i.job_id`.
+

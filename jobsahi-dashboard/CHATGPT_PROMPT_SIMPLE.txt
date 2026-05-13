@@ -1,0 +1,23 @@
+URGENT: Fix PHP SQL Error - "Unknown column 'i.job_id' in 'ON'"
+
+The `interviews` table does NOT have `job_id` column. Fix this query:
+
+```php
+// CURRENT BROKEN QUERY:
+$check = $conn->prepare("
+    SELECT i.id 
+    FROM interviews i
+    JOIN applications a ON i.application_id = a.id
+    JOIN jobs j ON a.job_id = j.id
+    WHERE i.id = ? AND j.recruiter_id = ?
+");
+```
+
+REQUIREMENT: Verify if interview belongs to recruiter. Provide 4 query options:
+1. If `interviews` has `recruiter_id` - check directly
+2. If `interviews` has `application_id` - join interviews->applications->jobs  
+3. If `interviews` has `student_id` - join interviews->applications(via student_id)->jobs
+4. If `interviews` has both - handle NULL application_id
+
+Return complete fixed PHP code with all options commented. NO `i.job_id` usage.
+

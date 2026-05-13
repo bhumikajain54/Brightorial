@@ -1,0 +1,133 @@
+<?php
+require_once '../cors.php';
+require_once '../db.php';
+
+try {
+    // ✅ Authenticate user
+    $decoded = authenticateJWT(['admin', 'recruiter']);
+    $user_role = strtolower($decoded['role'] ?? '');
+    $user_id = intval($decoded['user_id'] ?? ($decoded['id'] ?? 0));
+
+    if (!$conn) {
+        echo json_encode(["success" => false, "message" => "Database connection failed: " . mysqli_connect_error()]);
+        exit;
+    }
+
+    // ✅ Determine recruiter_id (for admin, can filter by ?recruiter_id=)
+    $recruiter_id = isset($_GET['recruiter_id']) ? intval($_GET['recruiter_id']) : 0;
+
+    if ($user_role === 'admin' && $recruiter_id > 0) {
+        // Admin can fetch specific recruiter
+        $sql = "SELECT rp.*, u.user_name, u.email, u.phone_number 
+                FROM recruiter_profiles rp
+                INNER JOIN users u ON rp.user_id = u.id
+                WHERE rp.id = ? AND rp.deleted_at IS NULL
+                ORDER BY rp.id DESC";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param('i', $recruiter_id);
+    } elseif ($user_role === 'admin') {
+        // Admin sees all recruiters
+        $sql = "SELECT rp.*, u.user_name, u.email, u.phone_number 
+                FROM recruiter_profiles rp
+                INNER JOIN users u ON rp.user_id = u.id
+                WHERE rp.deleted_at IS NULL
+                ORDER BY rp.id DESC";
+        $stmt = $conn->prepare($sql);
+    } else {
+        // Recruiter sees only their own approved profile
+        $sql = "SELECT rp.*, u.user_name, u.email, u.phone_number 
+                FROM recruiter_profiles rp
+                INNER JOIN users u ON rp.user_id = u.id
+                WHERE rp.user_id = ? AND rp.deleted_at IS NULL
+                ORDER BY rp.id DESC LIMIT 1";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param('i', $user_id);
+    }
+
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    // ✅ Base URL generator (automatically adjusts)
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
+    $host = $_SERVER['HTTP_HOST'];
+
+    // Example: if script is at jobsahi-API/api/employer/profile.php
+    // → base_dir should be /jobsahi-API/api/uploads/recruiter_logo/
+    $script_path = str_replace('\\', '/', dirname($_SERVER['PHP_SELF']));
+    $base_dir = explode('/api/', $script_path)[0]; // /jobsahi-API
+    $base_url = $protocol . $host . $base_dir . '/jobsahi-API/api/uploads/recruiter_logo/';
+
+    // ✅ Prepare response data
+    $profiles = [];
+    while ($row = $result->fetch_assoc()) {
+        $company_logo_url = null;
+
+        if (!empty($row['company_logo'])) {
+            // Clean relative path
+            $clean_path = str_replace(["\\", "/uploads/recruiter_logo/", "./", "../"], "", $row['company_logo']);
+            $company_logo_url = $protocol . $host . "/jobsahi-API/api/uploads/recruiter_logo/" . $clean_path;
+
+            // ✅ Optional: Verify file exists (only append if real)
+            $local_path = __DIR__ . '/../uploads/recruiter_logo/' . $clean_path;
+            if (!file_exists($local_path)) {
+                $company_logo_url = null; // fallback
+            }
+        }
+
+        $profiles[] = [
+            "profile_id" => intval($row['id']),
+            "user_id"    => intval($row['user_id']),
+
+            "personal_info" => [
+                "email"        => $row['email'],
+                "user_name"    => $row['user_name'],
+                "phone_number" => $row['phone_number']
+            ],
+
+            "professional_info" => [
+                "company_name" => $row['company_name'] ?? null,
+                "industry"     => $row['industry'] ?? null,
+                "website"      => $row['website'] ?? null,
+                "gst_pan"      => $row['gst_pan'] ?? null,
+                "location"     => $row['location'] ?? null
+            ],
+
+            "documents" => [
+                "company_logo" => $company_logo_url
+            ],
+
+            "status" => [
+                "created_at"   => $row['created_at'] ?? null,
+                "modified_at"  => $row['modified_at'] ?? null
+            ]
+        ];
+    }
+
+    // ✅ Final response
+    echo json_encode([
+        "success" => true,
+        "message" => count($profiles) > 0
+            ? "Recruiter profile(s) retrieved successfully"
+            : "No profiles found",
+        "data" => [
+            "profiles" => $profiles,
+            "total_count" => count($profiles),
+            "user_role" => $user_role,
+            "filters_applied" => [
+                "deleted_at" => "NULL"
+            ]
+        ],
+        "meta" => [
+            "timestamp" => date('Y-m-d H:i:s'),
+            "api_version" => "1.0",
+            "response_format" => "structured"
+        ]
+    ], JSON_PRETTY_PRINT);
+
+    $stmt->close();
+    $conn->close();
+
+} catch (Exception $e) {
+    echo json_encode(["success" => false, "message" => "Error: " . $e->getMessage()]);
+}
+?>

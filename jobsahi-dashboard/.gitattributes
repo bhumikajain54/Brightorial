@@ -1,0 +1,30 @@
+﻿# Auto detect text files and perform LF normalization
+* text=auto
+
+# JavaScript and JSX files should use LF
+*.js text eol=lf
+*.jsx text eol=lf
+
+# Configuration files should use LF
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Web files should use LF
+*.html text eol=lf
+*.css text eol=lf
+
+# Apache config files - preserve original line endings
+*.htaccess text
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
