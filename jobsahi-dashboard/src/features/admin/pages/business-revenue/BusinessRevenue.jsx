@@ -53,7 +53,7 @@ export default function BusinessRevenue() {
             </div>
 
             {/* Navigation Bar */}
-            <div className="mb-5">
+            {/* <div className="mb-5">
                 <PillNavigation 
                     tabs={navigationTabs}
                     activeTab={activeTab}
@@ -61,18 +61,17 @@ export default function BusinessRevenue() {
                     storageKey="admin_business_revenue_tab"
                     className="justify-center"
                 />
-            </div>
+            </div> */}
 
             {/* Content Area */}
             <div>
-                {activeTab === 0 && <RevenueDashboard />}
-                {activeTab === 1 && <OrderHistory />}
-                {activeTab === 2 && <SubscriptionPlan />}
-                {activeTab === 3 && <FeaturedContent />}
+                {/* {activeTab === 0 && <RevenueDashboard />} */}
+                <RevenueDashboard />
+                {/* {activeTab === 1 && <OrderHistory />} */}
+                {/* {activeTab === 2 && <SubscriptionPlan />} */}
+                {/* {activeTab === 3 && <FeaturedContent />} */}
             </div>
 
-            {/* Coming Soon Popup */}
-            <ComingSoonPopup />
         </div>
     )
 }

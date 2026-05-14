@@ -186,12 +186,14 @@ const AlertsAutomation = () => {
 
       <Horizontal4Cards data={alertMetrics} />
 
-      <PillNavigation 
-        tabs={navigationTabs} 
-        activeTab={activeTab} 
-        onTabChange={setActiveTab}
-        storageKey="admin_alerts_automation_tab"
-      />
+      <div className="flex justify-center">
+        <PillNavigation 
+          tabs={navigationTabs} 
+          activeTab={activeTab} 
+          onTabChange={setActiveTab}
+          storageKey="admin_alerts_automation_tab"
+        />
+      </div>
 
       {renderActiveTab()}
     </div>

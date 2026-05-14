@@ -86,7 +86,16 @@ const Dashboard = () => {
   // ---------- FETCH RECRUITER PROFILE (Default API) ----------
   const fetchRecruiterProfile = async () => {
     try {
-      const res = await getMethod({ apiUrl: service.getRecruiterProfile });
+      // Get recruiter ID if admin is impersonating
+      const impersonatedUserId = localStorage.getItem("impersonatedUserId");
+      const params = impersonatedUserId ? { 
+        user_id: impersonatedUserId,
+        uid: impersonatedUserId,
+        recruiter_id: impersonatedUserId,
+        employer_id: impersonatedUserId
+      } : {};
+      
+      const res = await getMethod({ apiUrl: service.getRecruiterProfile, params });
       if (res?.success || res?.status) {
         // Extract user_name from response structure: data.profiles[0].personal_info.user_name
         const username = res.data?.profiles?.[0]?.personal_info?.user_name || 
@@ -118,14 +127,24 @@ const Dashboard = () => {
     // }
 
     try {
-      const res = await getMethod({ apiUrl: service.getRecruiterJobs });
+      // Get recruiter ID if admin is impersonating
+      const impersonatedUserId = localStorage.getItem("impersonatedUserId");
+      const params = impersonatedUserId ? { 
+        user_id: impersonatedUserId,
+        uid: impersonatedUserId,
+        recruiter_id: impersonatedUserId,
+        employer_id: impersonatedUserId
+      } : {};
+      
+      const res = await getMethod({ apiUrl: service.getRecruiterJobs, params });
       if (res?.status) {
-        const statsData = res.dashboard_stats || res.dashboard || {};
+        // Check multiple possible response structures for dashboard stats
+        const statsData = res.dashboard_stats || res.dashboard || res.data?.dashboard_stats || res.data?.dashboard || {};
         const dataToSave = {
-          jobs_posted: statsData.jobs_posted || 0,
-          applied_job: statsData.applied_job || 0,
-          interview_job: statsData.interview_job || 0,
-          interview_completed: statsData.interview_completed || 0,
+          jobs_posted: statsData.jobs_posted || statsData.jobs_posted_count || res.data?.length || 0,
+          applied_job: statsData.applied_job || statsData.applied_count || 0,
+          interview_job: statsData.interview_job || statsData.interview_scheduled || 0,
+          interview_completed: statsData.interview_completed || statsData.interview_completed_count || 0,
         };
         setDashboardStats(dataToSave);
         // localStorage.setItem("dashboard_stats", JSON.stringify(dataToSave));
@@ -150,7 +169,16 @@ const Dashboard = () => {
     // }
 
     try {
-      const res = await getMethod({ apiUrl: service.getInterviewDetails });
+      // Get recruiter ID if admin is impersonating
+      const impersonatedUserId = localStorage.getItem("impersonatedUserId");
+      const params = impersonatedUserId ? { 
+        user_id: impersonatedUserId,
+        uid: impersonatedUserId,
+        recruiter_id: impersonatedUserId,
+        employer_id: impersonatedUserId
+      } : {};
+      
+      const res = await getMethod({ apiUrl: service.getInterviewDetails, params });
       if (res?.status) {
         // Handle multiple possible response structures
         let dataArr = []
@@ -224,7 +252,16 @@ const Dashboard = () => {
     // }
 
     try {
-      const res = await getMethod({ apiUrl: service.getWeeklyApplicants });
+      // Get recruiter ID if admin is impersonating
+      const impersonatedUserId = localStorage.getItem("impersonatedUserId");
+      const params = impersonatedUserId ? { 
+        user_id: impersonatedUserId,
+        uid: impersonatedUserId,
+        recruiter_id: impersonatedUserId,
+        employer_id: impersonatedUserId
+      } : {};
+      
+      const res = await getMethod({ apiUrl: service.getWeeklyApplicants, params });
       if (res?.status) {
         const chartLabels = res.chart_data.map((item) => item.trade);
         const chartValues = res.chart_data.map(

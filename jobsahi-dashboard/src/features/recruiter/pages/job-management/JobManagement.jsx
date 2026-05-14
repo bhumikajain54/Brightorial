@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { LuPlus, LuSettings } from 'react-icons/lu'
 import { PillNavigation } from '../../../../shared/components/navigation'
 import { TAILWIND_COLORS } from '../../../../shared/WebConstant'
@@ -115,7 +115,7 @@ const JobManagement = () => {
   return (
     <div className={`min-h-screen ${TAILWIND_COLORS.BG_PRIMARY}`}>
       {/* Green Navigation Pills */}
-      <div className="mb-4">
+      <div className="mb-4 flex justify-center">
         <PillNavigation 
           tabs={tabs}
           activeTab={activeTab}
@@ -126,7 +126,6 @@ const JobManagement = () => {
       </div>
 
       {/* Conditional Rendering based on active tab */}
-      
       {activeTab === 0 && (
         <ManageJob 
           jobs={jobs} 

@@ -49,17 +49,22 @@ const FindJob = ({ onClose }) => {
   const [error, setError] = useState(null)
   const [searchLocation, setSearchLocation] = useState('')
   const [searchCategory, setSearchCategory] = useState('')
+  const [searchKeyword, setSearchKeyword] = useState('')
   const [activeLocationFilter, setActiveLocationFilter] = useState('')
   const [activeCategoryFilter, setActiveCategoryFilter] = useState('')
+  const [activeKeywordFilter, setActiveKeywordFilter] = useState('')
   const [showLocationDropdown, setShowLocationDropdown] = useState(false)
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false)
   const [isTransitioning, setIsTransitioning] = useState(false)
   const hasFetchedJobsRef = useRef(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
 
   // Initialize search filters from URL params
   useEffect(() => {
     const locationParam = searchParams.get('location') || '';
     const categoryParam = searchParams.get('category') || '';
+    const keywordParam = searchParams.get('keyword') || '';
     
     if (locationParam) {
       setSearchLocation(locationParam);
@@ -68,6 +73,10 @@ const FindJob = ({ onClose }) => {
     if (categoryParam) {
       setSearchCategory(categoryParam);
       setActiveCategoryFilter(categoryParam);
+    }
+    if (keywordParam) {
+      setSearchKeyword(keywordParam);
+      setActiveKeywordFilter(keywordParam);
     }
   }, [searchParams])
 
@@ -350,6 +359,7 @@ const FindJob = ({ onClose }) => {
       selectedLevels.length === 0 &&
       (!activeLocationFilter || activeLocationFilter.trim() === '') &&
       (!activeCategoryFilter || activeCategoryFilter.trim() === '') &&
+      (!activeKeywordFilter || activeKeywordFilter.trim() === '') &&
       salaryRange[0] === 0 &&
       salaryRange[1] >= 100000
     
@@ -365,7 +375,8 @@ const FindJob = ({ onClose }) => {
       selectedLevels,
       salaryRange,
       activeLocationFilter,
-      activeCategoryFilter
+      activeCategoryFilter,
+      activeKeywordFilter
     })
     
     const filtered = jobListings.filter((job) => {
@@ -387,10 +398,16 @@ const FindJob = ({ onClose }) => {
       // Search filters - empty string means show all
       const locationFilter = activeLocationFilter ? activeLocationFilter.trim() : ''
       const categoryFilter = activeCategoryFilter ? activeCategoryFilter.trim() : ''
+      const keywordFilter = activeKeywordFilter ? activeKeywordFilter.trim() : ''
       const matchesLocation = !locationFilter || job.location.toLowerCase().includes(locationFilter.toLowerCase())
       const matchesSearchCategory = !categoryFilter || job.category.toLowerCase().includes(categoryFilter.toLowerCase())
+      // Keyword search in job title, company name, and skills
+      const matchesKeyword = !keywordFilter || 
+        job.title.toLowerCase().includes(keywordFilter.toLowerCase()) ||
+        job.company.toLowerCase().includes(keywordFilter.toLowerCase()) ||
+        (job.skills && job.skills.some(skill => skill.toLowerCase().includes(keywordFilter.toLowerCase())))
 
-      const matches = matchesEmployment && matchesCategory && matchesLevel && matchesSalary && matchesLocation && matchesSearchCategory
+      const matches = matchesEmployment && matchesCategory && matchesLevel && matchesSalary && matchesLocation && matchesSearchCategory && matchesKeyword
       
       if (!matches) {
         console.log('Job filtered out:', {
@@ -401,6 +418,7 @@ const FindJob = ({ onClose }) => {
           matchesSalary,
           matchesLocation,
           matchesSearchCategory,
+          matchesKeyword,
           jobType: job.type,
           jobCategory: job.category,
           jobExperience: job.experience,
@@ -414,7 +432,7 @@ const FindJob = ({ onClose }) => {
     
     console.log('Filtered Jobs Count:', filtered.length)
     return filtered
-  }, [jobListings, selectedEmployment, selectedCategories, selectedLevels, salaryRange, activeLocationFilter, activeCategoryFilter])
+  }, [jobListings, selectedEmployment, selectedCategories, selectedLevels, salaryRange, activeLocationFilter, activeCategoryFilter, activeKeywordFilter])
 
   const sortedJobListings = useMemo(() => {
     const listings = [...filteredJobListings]
@@ -432,6 +450,19 @@ const FindJob = ({ onClose }) => {
         return listings
     }
   }, [filteredJobListings, sortOption])
+
+  // Calculate pagination
+  const totalPages = Math.ceil(sortedJobListings.length / itemsPerPage)
+  const paginatedJobs = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage
+    const endIndex = startIndex + itemsPerPage
+    return sortedJobListings.slice(startIndex, endIndex)
+  }, [sortedJobListings, currentPage, itemsPerPage])
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [sortedJobListings.length, sortOption])
 
   const handleEmploymentToggle = (type) => {
     if (selectedEmployment.includes(type)) {
@@ -472,8 +503,10 @@ const FindJob = ({ onClose }) => {
     // Apply filters - trim whitespace and set empty string if no value
     const locationFilter = searchLocation.trim() || ''
     const categoryFilter = searchCategory.trim() || ''
+    const keywordFilter = searchKeyword.trim() || ''
     setActiveLocationFilter(locationFilter)
     setActiveCategoryFilter(categoryFilter)
+    setActiveKeywordFilter(keywordFilter)
     
     // End transition after a brief moment
     setTimeout(() => {
@@ -490,8 +523,10 @@ const FindJob = ({ onClose }) => {
     setSalaryRange([0, 100000])
     setSearchLocation('')
     setSearchCategory('')
+    setSearchKeyword('')
     setActiveLocationFilter('')
     setActiveCategoryFilter('')
+    setActiveKeywordFilter('')
     setShowLocationDropdown(false)
     setShowCategoryDropdown(false)
   }
@@ -555,7 +590,7 @@ const FindJob = ({ onClose }) => {
 
   // Auto-clear filters when search bars are empty and all filters are unchecked
   useEffect(() => {
-    const isSearchEmpty = !searchLocation.trim() && !searchCategory.trim()
+    const isSearchEmpty = !searchLocation.trim() && !searchCategory.trim() && !searchKeyword.trim()
     const areFiltersEmpty = 
       selectedEmployment.length === 0 &&
       selectedCategories.length === 0 &&
@@ -565,12 +600,13 @@ const FindJob = ({ onClose }) => {
 
     // If search is empty and filters are empty, automatically clear active filters
     if (isSearchEmpty && areFiltersEmpty) {
-      if (activeLocationFilter || activeCategoryFilter) {
+      if (activeLocationFilter || activeCategoryFilter || activeKeywordFilter) {
         setActiveLocationFilter('')
         setActiveCategoryFilter('')
+        setActiveKeywordFilter('')
       }
     }
-  }, [searchLocation, searchCategory, selectedEmployment, selectedCategories, selectedLevels, salaryRange, activeLocationFilter, activeCategoryFilter])
+  }, [searchLocation, searchCategory, searchKeyword, selectedEmployment, selectedCategories, selectedLevels, salaryRange, activeLocationFilter, activeCategoryFilter, activeKeywordFilter])
 
   // Auto-apply search filters when typing (real-time filtering with debounce)
   useEffect(() => {
@@ -578,16 +614,18 @@ const FindJob = ({ onClose }) => {
     const timeoutId = setTimeout(() => {
       const locationFilter = searchLocation.trim() || ''
       const categoryFilter = searchCategory.trim() || ''
+      const keywordFilter = searchKeyword.trim() || ''
       
       // Only update if values have changed
-      if (locationFilter !== activeLocationFilter || categoryFilter !== activeCategoryFilter) {
+      if (locationFilter !== activeLocationFilter || categoryFilter !== activeCategoryFilter || keywordFilter !== activeKeywordFilter) {
         setActiveLocationFilter(locationFilter)
         setActiveCategoryFilter(categoryFilter)
+        setActiveKeywordFilter(keywordFilter)
       }
     }, 300) // 300ms debounce for better performance
 
     return () => clearTimeout(timeoutId)
-  }, [searchLocation, searchCategory, activeLocationFilter, activeCategoryFilter])
+  }, [searchLocation, searchCategory, searchKeyword, activeLocationFilter, activeCategoryFilter, activeKeywordFilter])
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -765,8 +803,25 @@ const FindJob = ({ onClose }) => {
               Discover thousands of job opportunities from top companies. Start your career journey with just one click.
             </p>
 
-            <div className="rounded-xl xs:rounded-2xl sm:rounded-3xl shadow-lg p-2 xs:p-2.5 sm:p-3 md:p-4 lg:p-6 max-w-2xl mx-auto mb-4 xs:mb-5 sm:mb-6 md:mb-8" style={{ backgroundColor: colorHex('NEUTRAL.WHITE'), position: 'relative', zIndex: 10 }}>
-              <div className="flex flex-col gap-2 xs:gap-2.5 sm:gap-3 sm:flex-row sm:items-stretch w-full relative">
+            <div className="rounded-xl xs:rounded-2xl sm:rounded-3xl shadow-lg p-2 xs:p-2.5 sm:p-3 md:p-4 lg:p-6 max-w-4xl mx-auto mb-4 xs:mb-5 sm:mb-6 md:mb-8" style={{ backgroundColor: colorHex('NEUTRAL.WHITE'), position: 'relative', zIndex: 10 }}>
+              <div className="flex flex-col gap-2 xs:gap-2.5 sm:gap-3 w-full relative">
+                {/* Keyword Search Input - Full Width */}
+                <div className="flex-1 relative w-full z-50">
+                  <div className="flex items-center px-2 py-1.5 xs:px-2.5 xs:py-2 sm:px-3 sm:py-2.5 md:px-4 md:py-3 lg:px-5 lg:py-3 xl:px-6 rounded-lg xs:rounded-xl sm:rounded-2xl md:rounded-full bg-white shadow-sm sm:shadow-none border border-gray-200 w-full min-w-0">
+                    <FaSearch className="mr-1 xs:mr-1.5 sm:mr-2 md:mr-3 text-[10px] xs:text-xs sm:text-sm md:text-base flex-shrink-0" style={{ color: colorHex('ACCENT.GREEN') }} />
+                    <input
+                      type="text"
+                      placeholder="Search by job title, company, or skills..."
+                      value={searchKeyword}
+                      onChange={(e) => setSearchKeyword(e.target.value)}
+                      className="flex-1 text-[11px] xs:text-xs sm:text-sm md:text-base outline-none bg-transparent min-w-0 w-0"
+                      style={{ color: colorHex('NEUTRAL.BLUE_GRAY') }}
+                    />
+                  </div>
+                </div>
+                
+                {/* Location and Category Search Inputs */}
+                <div className="flex flex-col gap-2 xs:gap-2.5 sm:gap-3 sm:flex-row sm:items-stretch w-full relative">
                 {/* Location Search Input */}
                 <div className="flex-1 relative w-full sm:w-auto min-w-0 z-50" data-location-input>
                   <div className="flex items-center px-2 py-1.5 xs:px-2.5 xs:py-2 sm:px-3 sm:py-2.5 md:px-4 md:py-3 lg:px-5 lg:py-3 xl:px-6 rounded-lg xs:rounded-xl sm:rounded-2xl md:rounded-full bg-white shadow-sm sm:shadow-none border border-gray-200 w-full min-w-0">
@@ -915,6 +970,7 @@ const FindJob = ({ onClose }) => {
                     </>
                   )}
                 </button>
+                </div>
               </div>
             </div>
 
@@ -931,7 +987,7 @@ const FindJob = ({ onClose }) => {
               <h3 className="text-base xl:text-lg 2xl:text-xl font-semibold" style={{ color: colorHex('PRIMARY.NAVY') }}>
               Filter By
             </h3>
-              {(selectedEmployment.length > 0 || selectedCategories.length > 0 || selectedLevels.length > 0 || activeLocationFilter || activeCategoryFilter || salaryRange[0] > 0 || salaryRange[1] < 100000) && (
+              {(selectedEmployment.length > 0 || selectedCategories.length > 0 || selectedLevels.length > 0 || activeLocationFilter || activeCategoryFilter || activeKeywordFilter || salaryRange[0] > 0 || salaryRange[1] < 100000) && (
                 <button
                   onClick={handleClearFilters}
                   className="text-xs xl:text-sm font-medium px-2 py-1 rounded hover:underline"
@@ -952,7 +1008,7 @@ const FindJob = ({ onClose }) => {
                 <h2 className="text-lg xs:text-xl sm:text-2xl md:text-2xl lg:text-3xl font-bold transition-all duration-300 break-words" style={{ color: colorHex('PRIMARY.NAVY') }}>
                   {searching ? 'Searching...' : `All ${sortedJobListings.length} Jobs Found`}
               </h2>
-                {(selectedEmployment.length > 0 || selectedCategories.length > 0 || selectedLevels.length > 0 || activeLocationFilter || activeCategoryFilter || salaryRange[0] > 0 || salaryRange[1] < 100000) && (
+                {(selectedEmployment.length > 0 || selectedCategories.length > 0 || selectedLevels.length > 0 || activeLocationFilter || activeCategoryFilter || activeKeywordFilter || salaryRange[0] > 0 || salaryRange[1] < 100000) && (
                   <button
                     onClick={handleClearFilters}
                     className="text-xs xs:text-sm font-medium px-2 xs:px-3 py-1 xs:py-1.5 rounded border transition-colors hover:bg-gray-50"
@@ -1047,7 +1103,7 @@ const FindJob = ({ onClose }) => {
                 </div>
               )}
               
-              {!loading && !searching && !error && sortedJobListings.map((job, index) => (
+              {!loading && !searching && !error && paginatedJobs.map((job, index) => (
                 <div 
                   key={job.id} 
                   className="rounded-lg p-4 sm:p-5 md:p-6 hover:shadow-md transition-all duration-300 ease-in-out mx-1 sm:mx-2 cursor-pointer animate-fade-in-up" 
@@ -1141,48 +1197,68 @@ const FindJob = ({ onClose }) => {
               ))}
             </div>
 
-            {/* Pagination */}
-            <div className="flex justify-center mt-6 sm:mt-8 mx-1 sm:mx-2 overflow-x-auto">
-              <div className="flex items-center space-x-1 sm:space-x-2">
-                <button 
-                  className="px-2 py-1.5 sm:px-3 sm:py-2 transition-colors text-sm sm:text-base"
-                  style={{ color: 'var(--color-text-muted)' }}
-                  onMouseEnter={(e) => e.target.style.color = colorHex('PRIMARY.NAVY')}
-                  onMouseLeave={(e) => e.target.style.color = 'var(--color-text-muted)'}
-                >‹</button>
-                <button 
-                  className="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded text-sm sm:text-base"
-                  style={{ 
-                    color: 'var(--color-bg-white)',
-                    backgroundColor: 'var(--color-secondary)'
-                  }}
-                >1</button>
-                <button 
-                  className="px-2.5 py-1.5 sm:px-3 sm:py-2 transition-colors text-sm sm:text-base"
-                  style={{ color: 'var(--color-text-muted)' }}
-                  onMouseEnter={(e) => e.target.style.color = colorHex('PRIMARY.NAVY')}
-                  onMouseLeave={(e) => e.target.style.color = 'var(--color-text-muted)'}
-                >2</button>
-                <button 
-                  className="px-2.5 py-1.5 sm:px-3 sm:py-2 transition-colors text-sm sm:text-base"
-                  style={{ color: 'var(--color-text-muted)' }}
-                  onMouseEnter={(e) => e.target.style.color = colorHex('PRIMARY.NAVY')}
-                  onMouseLeave={(e) => e.target.style.color = 'var(--color-text-muted)'}
-                >3</button>
-                <button 
-                  className="px-2.5 py-1.5 sm:px-3 sm:py-2 transition-colors text-sm sm:text-base"
-                  style={{ color: 'var(--color-text-muted)' }}
-                  onMouseEnter={(e) => e.target.style.color = colorHex('PRIMARY.NAVY')}
-                  onMouseLeave={(e) => e.target.style.color = 'var(--color-text-muted)'}
-                >4</button>
-                <button 
-                  className="px-2 py-1.5 sm:px-3 sm:py-2 transition-colors text-sm sm:text-base"
-                  style={{ color: 'var(--color-text-muted)' }}
-                  onMouseEnter={(e) => e.target.style.color = colorHex('PRIMARY.NAVY')}
-                  onMouseLeave={(e) => e.target.style.color = 'var(--color-text-muted)'}
-                >›</button>
+            {/* Pagination - Only show if there are jobs and more than one page */}
+            {sortedJobListings.length > 0 && totalPages > 1 && (
+              <div className="flex justify-center mt-6 sm:mt-8 mx-1 sm:mx-2 overflow-x-auto">
+                <div className="flex items-center space-x-1 sm:space-x-2">
+                  <button 
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className="px-2 py-1.5 sm:px-3 sm:py-2 transition-colors text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ color: currentPage === 1 ? 'var(--color-text-muted)' : colorHex('PRIMARY.NAVY') }}
+                    onMouseEnter={(e) => {
+                      if (currentPage !== 1) {
+                        e.target.style.color = colorHex('PRIMARY.NAVY')
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (currentPage !== 1) {
+                        e.target.style.color = 'var(--color-text-muted)'
+                      }
+                    }}
+                  >‹</button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded text-sm sm:text-base transition-colors"
+                      style={{
+                        color: currentPage === page ? 'var(--color-bg-white)' : 'var(--color-text-muted)',
+                        backgroundColor: currentPage === page ? 'var(--color-secondary)' : 'transparent'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (currentPage !== page) {
+                          e.target.style.color = colorHex('PRIMARY.NAVY')
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (currentPage !== page) {
+                          e.target.style.color = 'var(--color-text-muted)'
+                        }
+                      }}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button 
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-2 py-1.5 sm:px-3 sm:py-2 transition-colors text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ color: currentPage === totalPages ? 'var(--color-text-muted)' : colorHex('PRIMARY.NAVY') }}
+                    onMouseEnter={(e) => {
+                      if (currentPage !== totalPages) {
+                        e.target.style.color = colorHex('PRIMARY.NAVY')
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (currentPage !== totalPages) {
+                        e.target.style.color = 'var(--color-text-muted)'
+                      }
+                    }}
+                  >›</button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
         {isFilterOpen && (

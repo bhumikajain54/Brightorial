@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { MatrixCard } from '../../../../shared/components/metricCard.jsx'
 import { PillNavigation } from '../../../../shared/components/navigation.jsx'
 import { TAILWIND_COLORS } from '../../../../shared/WebConstant.js'
-import ComingSoonPopup from '../../../../shared/components/ComingSoon.jsx'
 import ActivityLogs from './ActivityLogs.jsx'
 import ErrorLogs from './ErrorLogs.jsx'
 import MessageLogs from './MessageLogs.jsx'
@@ -54,23 +53,22 @@ export default function AdminTools() {
 
       {/* Navigation Buttons */}
       {/* <div className=" "> */}
-        <PillNavigation 
+        {/* <PillNavigation 
           tabs={adminToolsTabs}
           activeTab={activeTab}
           onTabChange={setActiveTab}
           storageKey="admin_tools_logs_tab"
           className=""
-        />
+        /> */}
       {/* </div> */}
 
       {/* Conditional Content Based on Active Tab */}
-      {activeTab === 0 && <ActivityLogs />}
-      {activeTab === 1 && <ErrorLogs />}
-      {activeTab === 2 && <MessageLogs />}
-      {activeTab === 3 && <RoleManagement />}
+      {/* {activeTab === 0 && <ActivityLogs />} */}
+      <ActivityLogs />
+      {/* {activeTab === 1 && <ErrorLogs />} */}
+      {/* {activeTab === 2 && <MessageLogs />} */}
+      {/* {activeTab === 3 && <RoleManagement />} */}
 
-      {/* Coming Soon Popup */}
-      <ComingSoonPopup />
     </div>
   )
 }

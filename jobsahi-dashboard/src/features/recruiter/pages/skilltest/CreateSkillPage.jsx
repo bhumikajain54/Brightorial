@@ -3,8 +3,9 @@ import { LuPlus, LuX, LuFileText, LuChevronDown } from 'react-icons/lu'
 import { MatrixCard } from '../../../../shared/components/metricCard'
 import { Button } from '../../../../shared/components/Button'
 import { TAILWIND_COLORS } from '../../../../shared/WebConstant'
-import { getMethod } from '../../../../service/api'
+import { getMethod, postMethod } from '../../../../service/api'
 import apiService from '../../services/serviceUrl'
+import Swal from 'sweetalert2'
 
 const CreateSkillPage = () => {
   const [showForm, setShowForm] = useState(false)
@@ -13,34 +14,63 @@ const CreateSkillPage = () => {
   const [selectedJob, setSelectedJob] = useState(null)
   const [showJobDropdown, setShowJobDropdown] = useState(false)
   const [loadingJobs, setLoadingJobs] = useState(false)
+  const [loadingQuestion, setLoadingQuestion] = useState(false)
+  const [loadingQuestions, setLoadingQuestions] = useState(false)
   const dropdownRef = useRef(null)
   const [formData, setFormData] = useState({
     questionText: '',
     options: ['', '', '', ''],
-    correctAnswer: 0
+    correctAnswer: 0 // 0=A, 1=B, 2=C, 3=D
   })
   const [errorMessage, setErrorMessage] = useState('')
 
   const totalQuestions = 3
 
-  // Load questions from localStorage on mount
+  // Fetch questions from API when job is selected
   useEffect(() => {
-    const savedQuestions = localStorage.getItem('skillTestQuestions')
-    if (savedQuestions) {
+    const fetchQuestions = async () => {
+      if (!selectedJob) {
+        setQuestions([])
+        return
+      }
+
       try {
-        setQuestions(JSON.parse(savedQuestions))
+        setLoadingQuestions(true)
+        const jobId = selectedJob.id || selectedJob.job_id
+        const res = await getMethod({ 
+          apiUrl: `${apiService.getSkillQuestions}?job_id=${jobId}` 
+        })
+        
+        if (res?.status && res?.data) {
+          const questionsList = Array.isArray(res.data) ? res.data : []
+          // Map API response to local format
+          const mappedQuestions = questionsList.map((q, idx) => ({
+            id: q.id || q.question_id || Date.now() + idx,
+            questionText: q.question_text || q.question || '',
+            options: [
+              q.option_a || '',
+              q.option_b || '',
+              q.option_c || '',
+              q.option_d || ''
+            ],
+            correctAnswer: q.correct_option === 'A' ? 0 : q.correct_option === 'B' ? 1 : q.correct_option === 'C' ? 2 : 3,
+            jobId: jobId,
+            jobTitle: selectedJob.title || selectedJob.job_title || null
+          }))
+          setQuestions(mappedQuestions)
+        } else {
+          setQuestions([])
+        }
       } catch (err) {
-        console.error('Error loading questions from localStorage:', err)
+        console.error('❌ Error fetching questions:', err)
+        setQuestions([])
+      } finally {
+        setLoadingQuestions(false)
       }
     }
-  }, [])
-
-  // Save questions to localStorage whenever questions change
-  useEffect(() => {
-    if (questions.length > 0) {
-      localStorage.setItem('skillTestQuestions', JSON.stringify(questions))
-    }
-  }, [questions])
+    
+    fetchQuestions()
+  }, [selectedJob])
 
   // Fetch jobs on component mount
   useEffect(() => {
@@ -128,7 +158,12 @@ const CreateSkillPage = () => {
     }))
   }
 
-  const handleAddQuestion = () => {
+  // Convert index to API format (0=A, 1=B, 2=C, 3=D)
+  const getCorrectOptionLetter = (index) => {
+    return ['A', 'B', 'C', 'D'][index] || 'A'
+  }
+
+  const handleAddQuestion = async () => {
     // Check if question limit is reached
     if (questionsCreated >= totalQuestions) {
       setErrorMessage(`You have reached the maximum limit of ${totalQuestions} questions.`)
@@ -154,25 +189,74 @@ const CreateSkillPage = () => {
       return
     }
 
+    // Validation - Check if correct answer is selected
+    if (formData.correctAnswer === null || formData.correctAnswer === undefined) {
+      setErrorMessage('Please select the correct answer.')
+      return
+    }
+
     // Clear error message if validation passes
     setErrorMessage('')
 
-    const newQuestion = {
-      id: Date.now(),
-      questionText: formData.questionText,
-      options: formData.options,
-      correctAnswer: formData.correctAnswer,
-      jobId: selectedJob?.id || selectedJob?.job_id || null,
-      jobTitle: selectedJob?.title || selectedJob?.job_title || null
-    }
+    try {
+      setLoadingQuestion(true)
+      const jobId = selectedJob.id || selectedJob.job_id
+      
+      // Prepare API payload according to API format
+      const payload = {
+        job_id: jobId,
+        question_text: formData.questionText.trim(),
+        option_a: formData.options[0].trim(),
+        option_b: formData.options[1].trim(),
+        option_c: formData.options[2].trim(),
+        option_d: formData.options[3].trim(),
+        correct_option: getCorrectOptionLetter(formData.correctAnswer)
+      }
 
-    setQuestions(prev => [...prev, newQuestion])
-    setFormData({
-      questionText: '',
-      options: ['', '', '', ''],
-      correctAnswer: 0
-    })
-    setShowForm(false)
+      console.log('📤 Sending question to API:', payload)
+
+      const res = await postMethod({
+        apiUrl: apiService.addSkillQuestion,
+        payload: payload
+      })
+
+      if (res?.status) {
+        // Success - Add question to local state
+        const newQuestion = {
+          id: res.data?.id || res.data?.question_id || Date.now(),
+          questionText: formData.questionText.trim(),
+          options: formData.options.map(opt => opt.trim()),
+          correctAnswer: formData.correctAnswer,
+          jobId: jobId,
+          jobTitle: selectedJob?.title || selectedJob?.job_title || null
+        }
+
+        setQuestions(prev => [...prev, newQuestion])
+        setFormData({
+          questionText: '',
+          options: ['', '', '', ''],
+          correctAnswer: 0
+        })
+        setShowForm(false)
+        
+        // Show success message
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: res.message || 'Question added successfully!',
+          timer: 2000,
+          showConfirmButton: false
+        })
+      } else {
+        // API returned error
+        setErrorMessage(res.message || 'Failed to add question. Please try again.')
+      }
+    } catch (err) {
+      console.error('❌ Error adding question:', err)
+      setErrorMessage('Something went wrong. Please try again.')
+    } finally {
+      setLoadingQuestion(false)
+    }
   }
 
   const handleCancel = () => {
@@ -342,26 +426,32 @@ const CreateSkillPage = () => {
                 Options (Select correct answer)
               </label>
               <div className="space-y-3">
-                {formData.options.map((option, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <input
-                      type="radio"
-                      name="correctAnswer"
-                      checked={formData.correctAnswer === index}
-                      onChange={() => handleCorrectAnswerChange(index)}
-                      className="w-5 h-5 text-[var(--color-secondary)] focus:ring-2 focus:ring-[var(--color-secondary)]"
-                    />
-                    <input
-                      type="text"
-                      value={option}
-                      onChange={(e) => handleOptionChange(index, e.target.value)}
-                      placeholder={`Option ${index + 1}`}
-                      className={`flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-secondary)] focus:border-transparent outline-none ${
-                        errorMessage && !option.trim() ? 'border-red-500' : 'border-gray-300'
-                      } ${TAILWIND_COLORS.TEXT_PRIMARY}`}
-                    />
-                  </div>
-                ))}
+                {formData.options.map((option, index) => {
+                  const optionLabel = ['A', 'B', 'C', 'D'][index]
+                  return (
+                    <div key={index} className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="correctAnswer"
+                        checked={formData.correctAnswer === index}
+                        onChange={() => handleCorrectAnswerChange(index)}
+                        className="w-5 h-5 text-[var(--color-secondary)] focus:ring-2 focus:ring-[var(--color-secondary)]"
+                      />
+                      <span className={`w-8 text-sm font-semibold ${TAILWIND_COLORS.TEXT_PRIMARY}`}>
+                        {optionLabel}:
+                      </span>
+                      <input
+                        type="text"
+                        value={option}
+                        onChange={(e) => handleOptionChange(index, e.target.value)}
+                        placeholder={`Enter option ${optionLabel}`}
+                        className={`flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-secondary)] focus:border-transparent outline-none ${
+                          errorMessage && !option.trim() ? 'border-red-500' : 'border-gray-300'
+                        } ${TAILWIND_COLORS.TEXT_PRIMARY}`}
+                      />
+                    </div>
+                  )
+                })}
               </div>
             </div>
           </div>
@@ -382,9 +472,19 @@ const CreateSkillPage = () => {
               variant="primary"
               size="md"
               className="flex items-center gap-2"
+              disabled={loadingQuestion}
             >
-              <LuFileText size={16} />
-              Add Question
+              {loadingQuestion ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Adding...
+                </>
+              ) : (
+                <>
+                  <LuFileText size={16} />
+                  Add Question
+                </>
+              )}
             </Button>
           </div>
         </div>
@@ -403,6 +503,15 @@ const CreateSkillPage = () => {
             No questions added yet for this job. Create your first question to get started.
           </p>
         </div>
+      ) : loadingQuestions ? (
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 text-center">
+          <div className="flex items-center justify-center gap-3">
+            <div className="w-6 h-6 border-2 border-[var(--color-secondary)] border-t-transparent rounded-full animate-spin"></div>
+            <p className={`text-lg ${TAILWIND_COLORS.TEXT_MUTED}`}>
+              Loading questions...
+            </p>
+          </div>
+        </div>
       ) : filteredQuestions.length > 0 ? (
         <div className="space-y-4">
           {filteredQuestions.map((question, index) => (
@@ -411,20 +520,24 @@ const CreateSkillPage = () => {
                 Question {index + 1}: {question.questionText}
               </h3>
               <div className="space-y-2">
-                {question.options.map((option, optIndex) => (
-                  <div key={optIndex} className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      checked={optIndex === question.correctAnswer}
-                      readOnly
-                      className="w-4 h-4"
-                    />
-                    <span className={`${optIndex === question.correctAnswer ? 'font-semibold text-green-600' : TAILWIND_COLORS.TEXT_MUTED}`}>
-                      Option {optIndex + 1}: {option}
-                      {optIndex === question.correctAnswer && ' ✓'}
-                    </span>
-                  </div>
-                ))}
+                {question.options.map((option, optIndex) => {
+                  const optionLabel = ['A', 'B', 'C', 'D'][optIndex]
+                  const isCorrect = optIndex === question.correctAnswer
+                  return (
+                    <div key={optIndex} className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        checked={isCorrect}
+                        readOnly
+                        className="w-4 h-4"
+                      />
+                      <span className={`${isCorrect ? 'font-semibold text-green-600' : TAILWIND_COLORS.TEXT_MUTED}`}>
+                        Option {optionLabel}: {option}
+                        {isCorrect && ' ✓ (Correct Answer)'}
+                      </span>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           ))}

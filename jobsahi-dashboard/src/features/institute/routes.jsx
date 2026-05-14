@@ -24,8 +24,8 @@ export default function InstituteRoutes() {
       <Route element={<InstituteLayout />}>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
-        <Route path="course-management" element={<CourseManagement />} />
-        <Route path="course-management/create" element={<CourseProvider><CreateCourse /></CourseProvider>} />
+        <Route path="course-management" element={<CourseProvider><CourseManagement /></CourseProvider>} />
+        <Route path="course-management/create" element={<CourseProvider><CourseManagement /></CourseProvider>} />
         <Route path="student-management" element={<StudentManagement />} />
         <Route path="batch-management" element={<BatchManagement />} />
         <Route path="certificates-completion" element={<CertificateCom />} />

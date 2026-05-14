@@ -291,7 +291,6 @@ const JobPosting = () => {
       const isPendingEdit = jobAdminAction === 'pending' && hasNoFlag;
       return matchesSearch && isPendingEdit;
     }
-    
     // ✅ Special handling for "Pending" filter
     if (statusFilter === 'Pending') {
       // Show jobs that are pending (either initial pending or pending edit approval)
@@ -794,9 +793,9 @@ const JobPosting = () => {
       });
 
       if (reason !== undefined) { // User clicked approve (reason can be empty)
-        // Update job admin_action to "approved" via PUT API
+        // Update job admin_action to "approved" via admin update_job_status API
         const response = await putMethod({
-          apiUrl: `${service.updateJob}?id=${jobId}`,
+          apiUrl: `${apiService.updateJobStatus}?id=${jobId}`,
           payload: {
             admin_action: 'approved'
           }
@@ -873,9 +872,9 @@ const JobPosting = () => {
       });
 
       if (reason) {
-        // Update job admin_action to "rejected" via PUT API
+        // Update job admin_action to "rejected" via admin update_job_status API
         const response = await putMethod({
-          apiUrl: `${service.updateJob}?id=${jobId}`,
+          apiUrl: `${apiService.updateJobStatus}?id=${jobId}`,
           payload: {
             admin_action: 'rejected',
             rejection_reason: reason
@@ -927,11 +926,51 @@ const JobPosting = () => {
     setPromotionJobId('');
   };
 
-  // ✅ Filter pending job edits (admin_action === "pending" and has last_updated)
+  // ✅ Filter pending job edits (admin_action === "pending")
+  // These are jobs that were previously approved but edited by recruiter, requiring re-approval
   const pendingJobEdits = jobPostings.filter(job => {
+    const jobId = job.id || job.job_id;
     const jobAdminAction = (job.admin_action || '').toLowerCase();
-    return jobAdminAction === 'pending' && job.last_updated;
+    
+    // Check for updated timestamp in multiple possible field names
+    const hasLastUpdated = job.last_updated || job.lastUpdated || job.updated_at || job.updated_date;
+    
+    // Check if job was previously approved (has snapshot or was approved before)
+    const wasPreviouslyApproved = approvedJobsSnapshot[jobId] || 
+                                  job.previously_approved === true ||
+                                  job.was_approved === true;
+    
+    // Exclude flagged jobs (they have separate handling)
+    const hasFlag = jobFlagsStatus[jobId];
+    
+    // Show jobs that:
+    // 1. Have admin_action = "pending" 
+    // 2. Either have been updated OR were previously approved OR just show all pending (to catch all edits)
+    // 3. Don't have a flag (flagged jobs are handled separately)
+    // Note: We show ALL pending jobs without flags, as they might be edits that need re-approval
+    const isPendingEdit = jobAdminAction === 'pending' && !hasFlag;
+    
+    if (isPendingEdit) {
+      console.log('📝 Found pending job edit:', {
+        jobId,
+        title: job.title,
+        company: job.company,
+        admin_action: job.admin_action,
+        last_updated: job.last_updated || job.lastUpdated || job.updated_at,
+        hasLastUpdated: !!hasLastUpdated,
+        wasPreviouslyApproved: !!wasPreviouslyApproved,
+        hasFlag: !!hasFlag,
+        created_at: job.created_at,
+        posted: job.posted
+      });
+    }
+    
+    return isPendingEdit;
   });
+  
+  console.log('📋 Pending Job Edits Count:', pendingJobEdits.length, 'out of', jobPostings.length, 'total jobs');
+  console.log('📋 Jobs with admin_action=pending:', jobPostings.filter(j => (j.admin_action || '').toLowerCase() === 'pending').length);
+  console.log('📋 Jobs with flags:', Object.keys(jobFlagsStatus).length);
 
   return (
     <div className="job-posting-section space-y-6">
@@ -1284,10 +1323,21 @@ const JobPosting = () => {
                             // Check if job is promoted
                             const isPromoted = job.is_featured === 1;
                             
+                            // Check if job is a pending edit (has admin_action=pending but no flag)
+                            const isPendingEdit = jobAdminAction === 'pending' && !flagInfo;
+                            
                             return (
                               <>
                                 <button 
-                                  onClick={() => handleApproveJob(job.id)} 
+                                  onClick={() => {
+                                    // If it's a pending edit (no flag), use handleApproveEditedJob
+                                    // Otherwise, use handleApproveJob (for flagged jobs)
+                                    if (isPendingEdit) {
+                                      handleApproveEditedJob(job.id || job.job_id);
+                                    } else {
+                                      handleApproveJob(job.id || job.job_id);
+                                    }
+                                  }} 
                                   className={`w-20 px-2 py-1 text-xs font-medium rounded transition-all duration-150 whitespace-nowrap ${
                                     isApproved
                                       ? '!bg-green-600 text-white opacity-50 cursor-not-allowed'

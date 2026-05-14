@@ -226,14 +226,17 @@ export default function Header({ toggleSidebar }) {
           const allStudents = Array.isArray(studentsResponse.data) ? studentsResponse.data : []
           console.log(`📊 Total students: ${allStudents.length}`)
           
-          allStudents.forEach(student => {
+          allStudents.forEach((student, index) => {
             const userInfo = student.user_info || student
             const profileInfo = student.profile_info || student
             const studentName = userInfo.user_name || profileInfo.student_name || student.student_name || student.name || 'A student'
             const date = profileInfo.created_at || userInfo.created_at || student.created_at || student.registration_date || new Date().toISOString()
             
+            // Generate unique ID - use student.id, user_id, or combination of index and timestamp
+            const studentId = student.id || student.user_id || `temp-${index}-${Date.now()}`
+            
             allNotifications.push({
-              id: `student-${student.id || student.user_id || Date.now()}`,
+              id: `student-${studentId}`,
               type: 'student',
               title: 'New Student Registered',
               message: `${studentName} has registered on the platform`,

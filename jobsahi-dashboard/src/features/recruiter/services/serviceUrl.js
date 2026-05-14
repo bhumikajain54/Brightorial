@@ -39,5 +39,9 @@ const service = {
       getRecruiterProfile: "/employer/profile.php",
   updateRecruiterProfile: "/employer/update_recruiter_profile.php",
 
+    //skill test
+    addSkillQuestion: "/skills/skill-questions.php",
+    getSkillQuestions: "/skills/skill-questions.php",
+
 };
 export default service;

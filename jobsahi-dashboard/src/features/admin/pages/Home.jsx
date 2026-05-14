@@ -527,6 +527,7 @@ function PlacementSuccess({ funnelData }) {
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [dashboardData, setDashboardData] = useState({
     cards: {
       total_students: '0',
@@ -578,6 +579,7 @@ export default function Dashboard() {
   const fetchDashboardData = useCallback(async () => {
     try {
       setLoading(true)
+      setError(null)
       
       // Fetch dashboard data and jobs in parallel
       const [dashboardResponse, jobsResponse] = await Promise.allSettled([
@@ -653,9 +655,11 @@ export default function Dashboard() {
         setRecentApplications(formattedApplications)
       } else {
         console.error('❌ Failed to fetch dashboard data:', response?.message)
+        setError(response?.message || 'Failed to load dashboard data')
       }
     } catch (error) {
       console.error('❌ Error fetching dashboard data:', error)
+      setError(error?.message || 'Failed to load dashboard data')
     } finally {
       setLoading(false)
     }
@@ -1050,12 +1054,37 @@ export default function Dashboard() {
   }
 
 
+  if (error) {
+    return (
+      <div className={`${TAILWIND_COLORS.CARD} p-12 text-center`}>
+        <p className={`text-red-600 mb-4`}>Error: {error}</p>
+        <button
+          onClick={() => {
+            setError(null)
+            fetchDashboardData()
+          }}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          Retry
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-4 sm:space-y-6">
-      <MatrixCard 
-        title="Dashboard Overview"
-        subtitle="Monitor your platform's key metrics and performance"
-      />
+      {loading && (
+        <div className={`${TAILWIND_COLORS.CARD} p-12 text-center`}>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className={`mt-4 ${TAILWIND_COLORS.TEXT_MUTED}`}>Loading dashboard...</p>
+        </div>
+      )}
+      {!loading && (
+        <>
+          <MatrixCard 
+            title="Dashboard Overview"
+            subtitle="Monitor your platform's key metrics and performance"
+          />
 
       <Horizontal4Cards data={overview} />
 
@@ -1203,6 +1232,8 @@ export default function Dashboard() {
         isOpen={viewModal.isOpen}
         onClose={() => setViewModal({ isOpen: false, registration: null })}
       />
+        </>
+      )}
     </div>
   )
 }

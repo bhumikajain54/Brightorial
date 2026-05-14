@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { LuBriefcase, LuGraduationCap } from 'react-icons/lu';
 import MetricCard, { MatrixCard, Horizontal4Cards } from '../../../../shared/components/metricCard.jsx';
 import { PillNavigation } from '../../../../shared/components/navigation.jsx';
 import { COLORS, TAILWIND_COLORS } from '../../../../shared/WebConstant.js';
@@ -11,11 +11,7 @@ import apiService from '../../services/serviceUrl';
 
 const JobCourseControlView = () => {
   // ====== STATE MANAGEMENT ======
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState(() => {
-    const tab = searchParams.get('tab');
-    return tab === 'course-oversight' ? 1 : 0;
-  });
+  const [activeTab, setActiveTab] = useState(0);
   
   // Job metrics state
   const [jobMetricsData, setJobMetricsData] = useState({
@@ -39,20 +35,12 @@ const JobCourseControlView = () => {
     {
       id: 'job-posting',
       label: 'Job Posting Control',
-      icon: () => (
-        <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor">
-          <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
-        </svg>
-      )
+      icon: LuBriefcase
     },
     {
       id: 'course-oversight',
       label: 'Course Oversight',
-      icon: () => (
-        <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor">
-          <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-        </svg>
-      )
+      icon: LuGraduationCap
     }
   ];
 
@@ -122,16 +110,6 @@ const JobCourseControlView = () => {
     fetchDashboardStats();
   }, [fetchDashboardStats]);
 
-  // ====== EFFECTS ======
-  useEffect(() => {
-    const current = searchParams.get('tab');
-    const expectedTab = activeTab === 0 ? 'job-posting' : 'course-oversight';
-    if (current !== expectedTab) {
-      const next = new URLSearchParams(searchParams);
-      next.set('tab', expectedTab);
-      setSearchParams(next, { replace: true });
-    }
-  }, [activeTab, searchParams, setSearchParams]);
 
   return (
     <div className="admin-jobcourse-root space-y-6">
@@ -145,12 +123,14 @@ const JobCourseControlView = () => {
       <Horizontal4Cards data={currentMetrics} />
 
       {/* Tabs */}
-      <PillNavigation 
-        tabs={navigationTabs} 
-        activeTab={activeTab} 
-        onTabChange={setActiveTab}
-        storageKey="admin_job_course_control_tab"
-      />
+      <div className="flex justify-center">
+        <PillNavigation 
+          tabs={navigationTabs} 
+          activeTab={activeTab} 
+          onTabChange={setActiveTab}
+          storageKey="admin_job_course_control_tab"
+        />
+      </div>
 
       {/* Job Posting */}
       {activeTab === 0 && <JobPosting />}

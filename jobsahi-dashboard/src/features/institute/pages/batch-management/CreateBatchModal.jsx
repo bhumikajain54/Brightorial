@@ -35,6 +35,8 @@ const [tempEnd, setTempEnd] = useState("");
 
   const [courses, setCourses] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(false);
+  const [courseBatchLimit, setCourseBatchLimit] = useState(null);
+  const [existingBatchesCount, setExistingBatchesCount] = useState(0);
 
   const fetchCourses = async () => {
     try {
@@ -54,6 +56,45 @@ const [tempEnd, setTempEnd] = useState("");
     }
   };
 
+  // Fetch course details to get batch_limit
+  const fetchCourseDetails = async (courseId) => {
+    try {
+      const response = await getMethod({
+        apiUrl: apiService.getSingleCourse,
+        params: { course_id: courseId }
+      });
+      if (response.status && response.course) {
+        const batchLimit = response.course.batch_limit || response.course.batchLimit || null;
+        setCourseBatchLimit(batchLimit);
+        return batchLimit;
+      }
+      return null;
+    } catch (err) {
+      console.error('Error fetching course details:', err);
+      return null;
+    }
+  };
+
+  // Fetch existing batches count for the course
+  const fetchExistingBatchesCount = async (courseId) => {
+    try {
+      const response = await getMethod({
+        apiUrl: apiService.getBatches,
+        params: { course_id: courseId }
+      });
+      if (response.status) {
+        const batches = response.batches || response.data || [];
+        const count = Array.isArray(batches) ? batches.length : 0;
+        setExistingBatchesCount(count);
+        return count;
+      }
+      return 0;
+    } catch (err) {
+      console.error('Error fetching batches:', err);
+      return 0;
+    }
+  };
+
   useEffect(() => {
     if (isOpen) {
       fetchCourses();
@@ -64,7 +105,13 @@ const [tempEnd, setTempEnd] = useState("");
           ...prev,
           course: String(courseId)
         }));
+        // Fetch course details and batches count when courseId is provided
+        fetchCourseDetails(courseId);
+        fetchExistingBatchesCount(courseId);
       }
+      // Reset batch limit and count when modal closes
+      setCourseBatchLimit(null);
+      setExistingBatchesCount(0);
     }
   }, [isOpen, courseId]);
 
@@ -77,9 +124,23 @@ const [tempEnd, setTempEnd] = useState("");
           ...prev,
           course: String(courseId)
         }));
+        // Fetch course details and batches count
+        fetchCourseDetails(courseId);
+        fetchExistingBatchesCount(courseId);
       }
     }
   }, [courses, courseId]);
+
+  // ✅ Fetch course details and batches count when course selection changes
+  useEffect(() => {
+    if (formData.course && formData.course !== courseId) {
+      const selectedCourseId = Number(formData.course);
+      if (selectedCourseId) {
+        fetchCourseDetails(selectedCourseId);
+        fetchExistingBatchesCount(selectedCourseId);
+      }
+    }
+  }, [formData.course]);
 
   // const [formData, setFormData] = useState({
   //   batchName: '',
@@ -189,6 +250,8 @@ const [tempEnd, setTempEnd] = useState("");
     setIsSubmitting(false);
     setErrorMsg("");
     setSuccessMsg("");
+    setCourseBatchLimit(null);
+    setExistingBatchesCount(0);
   };
 
   const handleCancel = () => {
@@ -283,12 +346,34 @@ const [tempEnd, setTempEnd] = useState("");
     setSuccessMsg("");
 
     try {
+      const selectedCourseId = Number(formData.course);
+      
+      // ✅ Validate batch limit before creating batch
+      if (selectedCourseId) {
+        // Fetch latest course details and batches count
+        const batchLimit = await fetchCourseDetails(selectedCourseId);
+        const currentBatchesCount = await fetchExistingBatchesCount(selectedCourseId);
+
+        // Check if batch limit is reached
+        if (batchLimit !== null && batchLimit !== undefined) {
+          if (currentBatchesCount >= batchLimit) {
+            setIsSubmitting(false);
+            setErrorMsg(
+              `Batch limit reached! This course has a maximum batch limit of ${batchLimit}. ` +
+              `Currently, ${currentBatchesCount} batch(es) already exist. ` +
+              `Please delete an existing batch or update the course batch limit to create a new batch.`
+            );
+            return;
+          }
+        }
+      }
+
       // ✅ Use instructor ID directly from formData (same as EditBatchModal)
       const instructor_id = formData.instructor ? Number(formData.instructor) : 0;
 
       // ✅ Construct payload as expected by backend
       const payload = {
-        course_id: Number(formData.course), // ✅ courseId select box se
+        course_id: selectedCourseId, // ✅ courseId select box se
         name: formData.batchName.trim(),
         batch_time_slot: formData.timeSlot,
         start_date: formData.startDate,
@@ -426,6 +511,22 @@ const [tempEnd, setTempEnd] = useState("");
                       ? "Course is pre-selected and cannot be changed" 
                       : "Choose the course for this batch"}
                   </p>
+                  {/* Batch Limit Info */}
+                  {formData.course && courseBatchLimit !== null && (
+                    <div className={`mt-2 p-2 rounded-md text-xs ${
+                      existingBatchesCount >= courseBatchLimit 
+                        ? 'bg-red-50 border border-red-200 text-red-700' 
+                        : 'bg-blue-50 border border-blue-200 text-blue-700'
+                    }`}>
+                      <div className="font-semibold">Batch Limit: {courseBatchLimit}</div>
+                      <div>Existing Batches: {existingBatchesCount} / {courseBatchLimit}</div>
+                      {existingBatchesCount >= courseBatchLimit && (
+                        <div className="font-semibold mt-1">
+                          ⚠️ Batch limit reached! Cannot create more batches.
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Batch Time Slot */}

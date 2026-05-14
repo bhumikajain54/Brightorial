@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { LuPlus, LuUsers, LuBookOpen, LuTrendingUp, LuMessageSquare, LuEye } from 'react-icons/lu'
+import { LuPlus, LuUsers, LuBookOpen, LuTrendingUp, /* LuMessageSquare, */ LuEye } from 'react-icons/lu'
 import { MatrixCard } from '../../../../shared/components/metricCard'
 import { PillNavigation } from '../../../../shared/components/navigation'
 import { TAILWIND_COLORS } from '../../../../shared/WebConstant'
@@ -7,7 +7,7 @@ import ViewStudents from './ViewStudents'
 // import AddStudents from './AddStudents'
 import AssignCourse from './AssignCourse'
 // import TrackProgress from './TrackProgress'
-import SendMessages from './SendMessages'
+// import SendMessages from './SendMessages'
 
 export default function StudentManagementSystem() {
   const [activeTab, setActiveTab] = useState(0)
@@ -35,18 +35,12 @@ export default function StudentManagementSystem() {
     //   label: 'Track Progress',
     //   icon: LuTrendingUp
     // },
-    {
-      id: 'send-messages',
-      label: 'Send Messages',
-      icon: LuMessageSquare
-    }
+    // {
+    //   id: 'send-messages',
+    //   label: 'Send Messages',
+    //   icon: LuMessageSquare
+    // }
   ]
-
-  const handleTabChange = (index) => {
-    if (index === activeTab) return
-    setPreviousTab(activeTab)
-    setActiveTab(index)
-  }
 
   const handleReturnToPreviousTab = () => {
     setActiveTab(previousTab ?? 0)
@@ -68,7 +62,12 @@ export default function StudentManagementSystem() {
         <PillNavigation 
           tabs={navigationTabs}
           activeTab={activeTab}
-          onTabChange={handleTabChange}
+          onTabChange={(index) => {
+            if (index !== activeTab) {
+              setPreviousTab(activeTab)
+              setActiveTab(index)
+            }
+          }}
           storageKey="institute_student_management_tab"
           className="w-full max-w-4xl"
         />
@@ -77,10 +76,10 @@ export default function StudentManagementSystem() {
       {/* Conditional Content Rendering */}
       <div className={`mt-6 ${TAILWIND_COLORS.TEXT_PRIMARY}`}>
         {activeTab === 0 && <ViewStudents />}
-        {/* {activeTab === 1 && <AddStudents />} */}
         {activeTab === 1 && <AssignCourse />}
+        {/* {activeTab === 1 && <AddStudents />} */}
         {/* {activeTab === 3 && <TrackProgress />} */}
-        {activeTab === 2 && <SendMessages onComingSoonClose={handleReturnToPreviousTab} />}
+        {/* {activeTab === 2 && <SendMessages onComingSoonClose={handleReturnToPreviousTab} />} */}
         {/* Add other tab components here as needed */}
       </div>
     </div>

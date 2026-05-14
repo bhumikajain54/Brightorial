@@ -610,6 +610,7 @@ function ReviewModal({ recruiter, isOpen, onClose }) {
 // }
 
 export default function PendingRecruiterApprovals({ employers = [] }) {
+  const navigate = useNavigate();
   const normalized = useMemo(() => employers.map(normalizeEmployer), [employers]);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -798,24 +799,24 @@ export default function PendingRecruiterApprovals({ employers = [] }) {
               localStorage.setItem("adminSessionUser", currentAdminUser);
             }
 
-            // Create user object for recruiter
+            // Create user object for recruiter (but keep admin token for API calls)
             const recruiterUser = {
               id: recruiter.uid || recruiter.id,
               user_name: recruiter.user_name,
               email: recruiter.email,
               role: "recruiter",
               phone_number: recruiter.phone_number,
+              // Store original recruiter ID for API calls
+              original_recruiter_id: recruiter.uid || recruiter.id,
             };
 
-            // Generate a temporary token (or call API if available)
-            // For now, we'll create a simple token-like string
-            // In production, you should call an admin API endpoint to get a valid token
-            const tempToken = `admin_impersonate_${recruiter.uid}_${Date.now()}`;
-
-            // Set recruiter's session
-            localStorage.setItem("authToken", tempToken);
+            // Use admin's actual token (not a fake one) so API calls work
+            // The backend should handle admin impersonation based on the admin token
+            // Set recruiter's user info but keep admin's token
+            localStorage.setItem("authToken", currentAdminToken); // Keep admin token
             localStorage.setItem("authUser", JSON.stringify(recruiterUser));
             localStorage.setItem("isAdminImpersonating", "true");
+            localStorage.setItem("impersonatedUserId", recruiter.uid || recruiter.id); // Store recruiter ID
 
             Swal.fire({
               title: 'Success!',

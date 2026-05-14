@@ -3,6 +3,7 @@ import { PrimaryButton, OutlineButton } from '../../../../shared/components/Butt
 import { COLORS, TAILWIND_COLORS } from '../../../../shared/WebConstant.js'
 import { getMethod } from '../../../../service/api'
 import apiService from '../../services/serviceUrl'
+import Swal from 'sweetalert2'
 
 // Toggle Switch Component
 const Toggle = ({ checked, onChange, label }) => (
@@ -297,7 +298,14 @@ const ExpiryReminder = () => {
   const handleUpdateRules = (updatedRules) => {
     // In a real app, this would call an API
     console.log('Updated rules:', updatedRules)
-    alert('Rules updated successfully!')
+    
+    Swal.fire({
+      title: "Success!",
+      text: "Rules updated successfully!",
+      icon: "success",
+      confirmButtonText: "OK",
+      confirmButtonColor: COLORS.GREEN_PRIMARY || "#5C9A24"
+    })
   }
 
   const handleReviewItem = (itemIndex) => {

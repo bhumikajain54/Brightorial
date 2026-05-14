@@ -54,98 +54,47 @@ const formatTimeAgo = (timestamp) => {
 export default function Dashboard() {
   const navigate = useNavigate()
 
-  // 🔹 KEY METRICS STATE (initial UI values as fallback)
+  // 🔹 KEY METRICS STATE (initialize with empty values)
   const [keyMetrics, setKeyMetrics] = useState([
     {
       title: 'Total Courses',
-      value: '24',
-      delta: '+2 from last month',
+      value: '0',
+      delta: '',
       icon: <LuBookOpen className="w-5 h-5" />
     },
     {
       title: 'Enrolled Students',
-      value: '1,234',
-      delta: '+15% from last month',
+      value: '0',
+      delta: '',
       icon: <LuUsers className="w-5 h-5" />
     },
     {
       title: 'Certified Students',
-      value: '850',
-      delta: '+8% from last month',
+      value: '0',
+      delta: '',
       icon: <LuTrophy className="w-5 h-5" />
     },
     {
       title: 'Placement Rate',
-      value: '78%',
-      delta: '+5% from last month',
+      value: '0%',
+      delta: '',
       icon: <LuTrendingUp className="w-5 h-5" />
     }
   ])
 
-  // 🔹 Recent Activities (initial dummy as fallback)
-  const [recentActivities, setRecentActivities] = useState([
-    {
-      id: 1,
-      text: 'New student enrolled in Welder course',
-      time: '2 minutes ago',
-      color: 'bg-blue-500'
-    },
-    {
-      id: 2,
-      text: 'Certificate generated for Priya Sharma',
-      time: '1 hour ago',
-      color: 'bg-green-500'
-    },
-    {
-      id: 3,
-      text: 'Welder course curriculum updated',
-      time: '3 hours ago',
-      color: 'bg-purple-500'
-    },
-    {
-      id: 4,
-      text: 'Monthly report generated successfully',
-      time: '1 day ago',
-      color: 'bg-orange-500'
-    }
-  ])
+  // 🔹 Recent Activities (initialize empty)
+  const [recentActivities, setRecentActivities] = useState([])
 
-  // 🔹 Course Statistics (initial dummy as fallback)
-  const [courseStatistics, setCourseStatistics] = useState([
-    {
-      id: 1,
-      course: 'Electrician',
-      value: 82
-    },
-    {
-      id: 2,
-      course: 'Fitter',
-      value: 58
-    },
-    {
-      id: 3,
-      course: 'Welder',
-      value: 44
-    },
-    {
-      id: 4,
-      course: 'Mechanic Diesel',
-      value: 36
-    },
-    {
-      id: 5,
-      course: 'COPA',
-      value: 18
-    }
-  ])
+  // 🔹 Course Statistics (initialize empty)
+  const [courseStatistics, setCourseStatistics] = useState([])
 
   // 🔹 Staff Members State (initial empty as fallback)
   const [staffMembers, setStaffMembers] = useState([])
 
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [staffLoading, setStaffLoading] = useState(false)
-  const [instituteName, setInstituteName] = useState('Brightorial')
+  const [instituteName, setInstituteName] = useState('')
 
   // 🔹 API CALL: institute_dashboard_stats.php
   useEffect(() => {
@@ -154,8 +103,18 @@ export default function Dashboard() {
         setLoading(true)
         setError(null)
 
+        // Get institute ID if admin is impersonating
+        const impersonatedUserId = localStorage.getItem("impersonatedUserId");
+        const params = impersonatedUserId ? { 
+          user_id: impersonatedUserId,
+          uid: impersonatedUserId,
+          institute_id: impersonatedUserId,
+          instituteId: impersonatedUserId
+        } : {};
+
         const res = await getMethod({
-          apiUrl: apiService.dashboardStats // 👈 yaha apna endpoint key use karo
+          apiUrl: apiService.dashboardStats,
+          params
         })
 
         // Expect: { status: true, data: { summary, recent_activities, course_statistics } }
@@ -188,32 +147,51 @@ export default function Dashboard() {
         }
 
         // ✅ 2) UPDATE RECENT ACTIVITIES
-        if (Array.isArray(recent_activities) && recent_activities.length > 0) {
-          const mappedActivities = recent_activities.map((item, idx) => ({
-            id: idx + 1,
-            text: item.title || item.text || item.message || 'Activity',
-            time: formatTimeAgo(item.timestamp || item.created_at || item.date),
-            color: getActivityColor(item.type || item.activity_type || 'default')
-          }))
-          setRecentActivities(mappedActivities)
-        } else if (Array.isArray(recent_activities) && recent_activities.length === 0) {
-          // If API returns empty array, show empty state (don't use fallback)
+        if (Array.isArray(recent_activities)) {
+          if (recent_activities.length > 0) {
+            const mappedActivities = recent_activities.map((item, idx) => ({
+              id: idx + 1,
+              text: item.title || item.text || item.message || 'Activity',
+              time: formatTimeAgo(item.timestamp || item.created_at || item.date),
+              color: getActivityColor(item.type || item.activity_type || 'default')
+            }))
+            setRecentActivities(mappedActivities)
+          } else {
+            // Empty array - show empty state
+            setRecentActivities([])
+          }
+        } else {
+          // Missing or null - show empty state
           setRecentActivities([])
         }
-        // If recent_activities is missing/null, keep fallback data
 
         // ✅ 3) UPDATE COURSE STATISTICS
-        if (Array.isArray(course_statistics)) {
+        if (Array.isArray(course_statistics) && course_statistics.length > 0) {
           const mappedStats = course_statistics.map((item, idx) => ({
             id: idx + 1,
-            course: item.course_title,
+            course: item.course_title || item.course || 'Unknown Course',
             value: Number(item.completion_rate ?? 0)
           }))
           setCourseStatistics(mappedStats)
+        } else {
+          // Empty or missing - show empty state
+          setCourseStatistics([])
         }
 
       } catch (err) {
-        setError(err.message || 'Something went wrong')
+        // Better error handling - check if it's an unauthorized error
+        const errorMessage = err.message || err.response?.data?.message || 'Something went wrong'
+        if (errorMessage.includes('Unauthorized') || errorMessage.includes('unauthorized')) {
+          // Check if admin is impersonating
+          const isAdminImpersonating = localStorage.getItem('isAdminImpersonating') === 'true'
+          if (isAdminImpersonating) {
+            setError('Backend needs to be configured to allow admin impersonation. Please contact backend team.')
+          } else {
+            setError('Unauthorized access. Please login again.')
+          }
+        } else {
+          setError(errorMessage)
+        }
       } finally {
         setLoading(false)
       }
@@ -228,8 +206,18 @@ export default function Dashboard() {
       try {
         setStaffLoading(true)
 
+        // Get institute ID if admin is impersonating
+        const impersonatedUserId = localStorage.getItem("impersonatedUserId");
+        const params = impersonatedUserId ? { 
+          user_id: impersonatedUserId,
+          uid: impersonatedUserId,
+          institute_id: impersonatedUserId,
+          instituteId: impersonatedUserId
+        } : {};
+
         const res = await getMethod({
-          apiUrl: apiService.getFaculty
+          apiUrl: apiService.getFaculty,
+          params
         })
 
         // Expect: { status: true, data: [faculty objects] }
@@ -264,8 +252,18 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchInstituteName = async () => {
       try {
+        // Get institute ID if admin is impersonating
+        const impersonatedUserId = localStorage.getItem("impersonatedUserId");
+        const params = impersonatedUserId ? { 
+          user_id: impersonatedUserId,
+          uid: impersonatedUserId,
+          institute_id: impersonatedUserId,
+          instituteId: impersonatedUserId
+        } : {};
+
         const res = await getMethod({
-          apiUrl: apiService.getInstituteProfile
+          apiUrl: apiService.getInstituteProfile,
+          params
         })
 
         if (res?.success) {
@@ -276,10 +274,34 @@ export default function Dashboard() {
 
           if (profile?.institute_info?.institute_name) {
             setInstituteName(profile.institute_info.institute_name)
+          } else if (profile?.institute_name) {
+            setInstituteName(profile.institute_name)
+          } else {
+            // Try to get from authUser as fallback
+            try {
+              const authUser = localStorage.getItem("authUser");
+              if (authUser) {
+                const user = JSON.parse(authUser);
+                setInstituteName(user.user_name || user.institute_name || 'Institute')
+              }
+            } catch (e) {
+              setInstituteName('Institute')
+            }
           }
         }
       } catch (err) {
-        // Keep default 'Brightorial' on error
+        // Try to get from authUser as fallback
+        try {
+          const authUser = localStorage.getItem("authUser");
+          if (authUser) {
+            const user = JSON.parse(authUser);
+            setInstituteName(user.user_name || user.institute_name || 'Institute')
+          } else {
+            setInstituteName('Institute')
+          }
+        } catch (e) {
+          setInstituteName('Institute')
+        }
       }
     }
 

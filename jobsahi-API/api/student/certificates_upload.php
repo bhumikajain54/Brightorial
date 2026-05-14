@@ -1,0 +1,129 @@
+<?php
+require_once '../cors.php';
+require_once '../db.php';
+require_once '../helpers/r2_uploader.php'; // ✅ R2 Uploader
+
+try {
+    // ✅ Authenticate JWT (Student Only)
+    $decoded = authenticateJWT(['student']);
+    $user_id = intval($decoded['user_id'] ?? ($decoded['id'] ?? 0));
+
+    // ✅ Allow only POST
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        echo json_encode(["success" => false, "message" => "Only POST requests allowed"]);
+        exit;
+    }
+
+    // ✅ Allowed extensions
+    $allowed_extensions = ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'];
+
+    // ✅ Check file existence
+    if (empty($_FILES['certificate']['name'])) {
+        echo json_encode(["success" => false, "message" => "Certificate file is required"]);
+        exit;
+    }
+
+    $fileName = $_FILES['certificate']['name'];
+    $tmpName = $_FILES['certificate']['tmp_name'];
+    $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+
+    if (!in_array($ext, $allowed_extensions)) {
+        echo json_encode([
+            "success" => false,
+            "message" => "Invalid file type. Allowed: PDF, JPG, JPEG, PNG, DOC, DOCX"
+        ]);
+        exit;
+    }
+
+    // ✅ Get student profile ID
+    $stmt = $conn->prepare("SELECT id, certificates FROM student_profiles WHERE user_id = ? AND deleted_at IS NULL LIMIT 1");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    $student = $res->fetch_assoc();
+    $stmt->close();
+
+    if (!$student) {
+        echo json_encode(["success" => false, "message" => "Student profile not found"]);
+        exit;
+    }
+
+    $student_id = intval($student['id']);
+    $old_certificate = $student['certificates'] ?? null;
+
+    // ✅ Delete old certificate from R2 if exists
+    if (!empty($old_certificate)) {
+        // Check if old certificate is R2 URL
+        if (strpos($old_certificate, 'r2.dev') !== false || strpos($old_certificate, 'r2.cloudflarestorage.com') !== false) {
+            // Extract R2 path from URL
+            $parsedUrl = parse_url($old_certificate);
+            $r2Path = ltrim($parsedUrl['path'], '/');
+            
+            // Remove bucket name if present
+            if (strpos($r2Path, 'jobsahi-media/') === 0) {
+                $r2Path = str_replace('jobsahi-media/', '', $r2Path);
+            }
+            
+            // Delete from R2
+            R2Uploader::deleteFile($r2Path);
+        } else {
+            // Old local file (backward compatibility)
+            $old_file = __DIR__ . '/..' . $old_certificate;
+            if (file_exists($old_file)) {
+                unlink($old_file);
+            }
+        }
+    }
+
+    // ✅ Upload to Cloudflare R2 (Student Profile Certificate)
+    $r2Path = "student_profile_certificate/certificate_{$user_id}." . $ext;
+    $uploadResult = R2Uploader::uploadFile($tmpName, $r2Path);
+
+    if (!$uploadResult['success']) {
+        echo json_encode([
+            "success" => false,
+            "message" => "Upload failed: " . $uploadResult['message']
+        ]);
+        exit;
+    }
+
+    // ✅ Get R2 public URL
+    $r2Url = $uploadResult['url'];
+
+    // ✅ Update student profile in DB with R2 URL
+    $update_sql = "UPDATE student_profiles 
+                   SET certificates = ?, updated_at = NOW() 
+                   WHERE id = ? AND deleted_at IS NULL";
+    $update_stmt = $conn->prepare($update_sql);
+    $update_stmt->bind_param("si", $r2Url, $student_id);
+    $update_stmt->execute();
+
+    // ✅ Final structured response
+    echo json_encode([
+        "success" => true,
+        "message" => "Certificate uploaded successfully",
+        "data" => [
+            "student_id" => $student_id,
+            "user_id" => $user_id,
+            "certificate_url" => $r2Url, // Direct R2 URL
+            "file_name" => basename($r2Url),
+            "file_type" => $ext
+        ],
+        "meta" => [
+            "uploaded_at" => date('Y-m-d H:i:s'),
+            "api_version" => "1.0",
+            "response_format" => "structured",
+            "storage" => "cloudflare_r2"
+        ]
+    ], JSON_PRETTY_PRINT);
+
+    $update_stmt->close();
+    $conn->close();
+
+} catch (Exception $e) {
+    echo json_encode([
+        "success" => false,
+        "message" => "Error: " . $e->getMessage()
+    ]);
+}
+?>

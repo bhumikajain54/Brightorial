@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { LuPlus, LuEye } from 'react-icons/lu'
+import Swal from 'sweetalert2'
 import Button from '../../../../shared/components/Button'
 import { MatrixCard } from '../../../../shared/components/metricCard'
 import { TAILWIND_COLORS } from '../../../../shared/WebConstant'
@@ -8,6 +9,24 @@ import CourseDetail from './CourseDetail'
 import CreateBatchModal from './CreateBatchModal'
 import { getMethod } from '../../../../service/api'
 import apiService from '../../services/serviceUrl.js'
+
+// Helper function for user-specific localStorage keys
+const getUserSpecificKey = (baseKey) => {
+  try {
+    const authUser = localStorage.getItem("authUser");
+    if (authUser) {
+      const user = JSON.parse(authUser);
+      const userId = user.id || user.uid;
+      const userRole = user.role;
+      if (userId && userRole) {
+        return `${baseKey}_${userRole}_${userId}`;
+      }
+    }
+  } catch (error) {
+    console.error('Error getting user-specific key:', error);
+  }
+  return baseKey;
+};
 
 export default function BatchManagement() {
   const [selectedBatch, setSelectedBatch] = useState(null)
@@ -45,6 +64,7 @@ export default function BatchManagement() {
             activeBatches: c.active_batches || 0,
             progress: c.overall_progress || 0,
             admin_action: adminAction,
+            batchLimit: c.batch_limit || c.batchLimit || null, // ✅ Include batch_limit
           }
         })
         setCourses(mapped)
@@ -75,7 +95,25 @@ export default function BatchManagement() {
 
   // ✅ Check localStorage on mount for refresh persistence
   useEffect(() => {
-    const storedCourseId = localStorage.getItem('institute_course_detail_id')
+    // Helper function for user-specific localStorage keys
+    const getUserSpecificKey = (baseKey) => {
+      try {
+        const authUser = localStorage.getItem("authUser");
+        if (authUser) {
+          const user = JSON.parse(authUser);
+          const userId = user.id || user.uid;
+          const userRole = user.role;
+          if (userId && userRole) {
+            return `${baseKey}_${userRole}_${userId}`;
+          }
+        }
+      } catch (error) {
+        console.error('Error getting user-specific key:', error);
+      }
+      return baseKey;
+    };
+    const courseDetailKey = getUserSpecificKey('institute_course_detail_id');
+    const storedCourseId = localStorage.getItem(courseDetailKey)
     if (storedCourseId && !selectedCourse && !loading) {
       // Fetch course data if we have stored ID but no selected course
       handleViewCourse(Number(storedCourseId))
@@ -128,6 +166,52 @@ export default function BatchManagement() {
 
   const handleAddBatch = (courseId) => {
     const course = courses.find((c) => c.id === courseId)
+    
+    // ✅ Check batch limit before opening modal
+    if (course?.batchLimit !== null && course?.batchLimit !== undefined) {
+      const batchLimit = Number(course.batchLimit)
+      const currentBatches = course.totalBatches || 0
+      
+      if (currentBatches >= batchLimit) {
+        // Show popup warning with clear message
+        Swal.fire({
+          title: '⚠️ Batch Limit Reached!',
+          html: `
+            <div style="text-align: left; padding: 10px;">
+              <p style="margin-bottom: 15px; font-size: 16px; color: #1f2937;">
+                <strong style="color: #111827;">${course.title}</strong>
+              </p>
+              <div style="background-color: #fef2f2; border-left: 4px solid #dc2626; padding: 12px; margin-bottom: 15px; border-radius: 4px;">
+                <p style="margin-bottom: 8px; color: #991b1b; font-weight: 600;">
+                  इस course की batch limit <strong>${batchLimit}</strong> है।
+                </p>
+                <p style="margin-bottom: 0; color: #991b1b;">
+                  वर्तमान में <strong>${currentBatches} batch(es)</strong> पहले से मौजूद हैं।
+                </p>
+              </div>
+              <p style="color: #dc2626; font-weight: 600; font-size: 14px; margin-top: 15px;">
+                ⚠️ इसलिए और batch create नहीं हो सकती है।
+              </p>
+              <p style="color: #6b7280; font-size: 13px; margin-top: 10px;">
+                कृपया कोई existing batch delete करें या course की batch limit update करें।
+              </p>
+            </div>
+          `,
+          icon: 'warning',
+          iconColor: '#dc2626',
+          confirmButtonText: 'समझ गया',
+          confirmButtonColor: '#5C9A24',
+          width: '550px',
+          customClass: {
+            popup: 'batch-limit-popup',
+            title: 'batch-limit-title',
+            htmlContainer: 'batch-limit-content'
+          }
+        })
+        return // Don't open modal
+      }
+    }
+    
     setSelectedCourseForBatch({
       id: courseId,
       title: course?.title || 'Unknown Course',
@@ -154,13 +238,15 @@ export default function BatchManagement() {
   if (selectedCourse) {
     // Store course ID in localStorage for refresh persistence
     if (selectedCourse.id) {
-      localStorage.setItem('institute_course_detail_id', String(selectedCourse.id))
+      const courseDetailKey = getUserSpecificKey('institute_course_detail_id');
+      localStorage.setItem(courseDetailKey, String(selectedCourse.id))
     }
     return (
       <CourseDetail
         courseData={selectedCourse}
         onBack={() => {
-          localStorage.removeItem('institute_course_detail_id')
+          const courseDetailKey = getUserSpecificKey('institute_course_detail_id');
+          localStorage.removeItem(courseDetailKey)
           handleBackToCourses()
         }}
         onViewBatch={(batch) => handleViewBatch(selectedCourse.id, batch)}
@@ -259,6 +345,16 @@ export default function BatchManagement() {
                 Add Batch
               </Button>
             </div>
+            {/* Batch Limit Warning */}
+            {course.batchLimit !== null && 
+             course.batchLimit !== undefined && 
+             (course.totalBatches || 0) >= Number(course.batchLimit) && (
+              <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-xs text-red-700 font-semibold">
+                  ⚠️ Batch limit reached ({course.totalBatches}/{course.batchLimit})
+                </p>
+              </div>
+            )}
           </div>
         ))}
       </div>

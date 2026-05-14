@@ -32,7 +32,7 @@ const SkillTest = () => {
       </div>
 
       {/* Navigation Pills */}
-      <div className="mb-5">
+      <div className="flex justify-center mb-5">
         <PillNavigation
           tabs={tabs}
           activeTab={activeTab}

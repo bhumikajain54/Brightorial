@@ -13,6 +13,7 @@ import Swal from "sweetalert2";
 import { TAILWIND_COLORS } from "../../../../shared/WebConstant";
 import { getMethod, postMethod, postMultipart } from "../../../../service/api";
 import apiService from "../../services/serviceUrl.js";
+import { env } from "../../../../service/envConfig";
 
 // Default values for template form
 const DEFAULT_TEMPLATE_NAME = "";
@@ -1300,25 +1301,162 @@ function CertificateGeneration() {
 
                 {(certificateId || fileUrl) && (
                   <div className="flex justify-center mt-6">
-                    {fileUrl ? (
-                      <a
-                        href={fileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`bg-green-600 hover:bg-green-700 ${TAILWIND_COLORS.TEXT_INVERSE} px-6 py-3 rounded-lg flex items-center space-x-2`}
-                      >
-                        <LuDownload className="h-5 w-5" />
-                        <span>Download Certificate</span>
-                      </a>
-                    ) : certificateId ? (
                       <button
-                        onClick={() => handleDownloadCertificate(certificateId)}
+                      onClick={async () => {
+                        try {
+                          let fileUrlToDownload = fileUrl;
+                          
+                          // If fileUrl not available, fetch it
+                          if (!fileUrlToDownload && certificateId) {
+                            await handleDownloadCertificate(certificateId);
+                            return;
+                          }
+                          
+                          // Use serve_certificate.php endpoint ONLY (handles authentication properly)
+                          try {
+                            let serveUrl = '';
+                            const apiHost = env.apiHost; // Get full API host URL
+                            
+                            // Extract certificate database ID from certificateId
+                            if (certificateId) {
+                              // Extract numeric ID from formatted certificateId (e.g., "CERT-2025-001" -> 1)
+                              const certIdStr = String(certificateId);
+                              const numericMatch = certIdStr.match(/(\d+)$/);
+                              if (numericMatch && numericMatch[1]) {
+                                serveUrl = `${apiHost}${apiService.serveCertificate}?id=${numericMatch[1]}`;
+                              } else if (fileUrlToDownload) {
+                                // Fallback: extract filename from URL
+                                const fileName = fileUrlToDownload.split('/').pop();
+                                if (fileName && fileName.endsWith('.pdf')) {
+                                  serveUrl = `${apiHost}${apiService.serveCertificate}?file=${encodeURIComponent(fileName)}`;
+                                }
+                              }
+                            } else if (fileUrlToDownload) {
+                              // Fallback: extract filename from URL
+                              const fileName = fileUrlToDownload.split('/').pop();
+                              if (fileName && fileName.endsWith('.pdf')) {
+                                serveUrl = `${apiHost}${apiService.serveCertificate}?file=${encodeURIComponent(fileName)}`;
+                              }
+                            }
+                            
+                            console.log('🔍 Download URL:', serveUrl); // Debug log
+                            
+                            if (!serveUrl) {
+                              Swal.fire({
+                                icon: 'error',
+                                title: 'Download Failed',
+                                text: 'Could not determine certificate ID. Please contact support.',
+                                confirmButtonColor: '#5C9A24'
+                              });
+                              return;
+                            }
+                            
+                            // Fetch PDF from serve endpoint with authentication
+                            console.log('📥 Fetching PDF from:', serveUrl);
+                            const response = await fetch(serveUrl, {
+                              method: 'GET',
+                              headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                              },
+                            });
+                            
+                            console.log('📥 Response status:', response.status, 'Content-Type:', response.headers.get('content-type'));
+                            
+                            if (response.ok) {
+                              const blob = await response.blob();
+                              console.log('📥 Blob size:', blob.size, 'bytes, Type:', blob.type);
+                              
+                              // Verify it's a PDF
+                              if (blob && blob.size > 0) {
+                                // Check PDF signature
+                                const firstBytes = await blob.slice(0, 4).text();
+                                const isPDF = firstBytes.startsWith('%PDF') || blob.type === 'application/pdf';
+                                console.log('📥 PDF check - First bytes:', firstBytes, 'Is PDF:', isPDF);
+                                
+                                if (isPDF) {
+                                  // Download PDF
+                                  const url = window.URL.createObjectURL(blob);
+                                  const link = document.createElement('a');
+                                  link.href = url;
+                                  link.download = `certificate_${certificateId || 'cert'}.pdf`;
+                                  link.style.display = 'none';
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  
+                                  setTimeout(() => {
+                                    document.body.removeChild(link);
+                                    window.URL.revokeObjectURL(url);
+                                  }, 100);
+                                  
+                                  Swal.fire({
+                                    icon: 'success',
+                                    title: 'Download Started',
+                                    text: 'Certificate download has started.',
+                                    timer: 2000,
+                                    showConfirmButton: false,
+                                    confirmButtonColor: '#5C9A24'
+                                  });
+                                } else {
+                                  // Not a valid PDF - might be error message
+                                  const text = await blob.text();
+                                  console.error('❌ Invalid PDF response:', text.substring(0, 500));
+                                  Swal.fire({
+                                    icon: 'error',
+                                    title: 'Invalid PDF',
+                                    text: 'The server returned an invalid response. Please check console for details.',
+                                    confirmButtonColor: '#5C9A24'
+                                  });
+                                }
+                              } else {
+                                console.error('❌ Empty blob received');
+                                Swal.fire({
+                                  icon: 'error',
+                                  title: 'Download Failed',
+                                  text: 'Certificate file is empty. Please contact support.',
+                                  confirmButtonColor: '#5C9A24'
+                                });
+                              }
+                            } else {
+                              const errorText = await response.text();
+                              console.error('❌ Download error:', response.status, errorText.substring(0, 500));
+                              Swal.fire({
+                                icon: 'error',
+                                title: 'Download Failed',
+                                text: `Server error (${response.status}). Please check console for details.`,
+                                confirmButtonColor: '#5C9A24'
+                              });
+                            }
+                          } catch (error) {
+                            console.error('Download error:', error);
+                            Swal.fire({
+                              icon: 'error',
+                              title: 'Download Failed',
+                              text: 'An error occurred while downloading. Please try again.',
+                              confirmButtonColor: '#5C9A24'
+                            });
+                          }
+                        } catch (err) {
+                          console.error('Download error:', err);
+                          // Fallback: try opening URL directly
+                          if (fileUrl) {
+                            window.open(fileUrl, '_blank');
+                          } else if (certificateId) {
+                            handleDownloadCertificate(certificateId);
+                          } else {
+                            Swal.fire({
+                              icon: 'error',
+                              title: 'Error',
+                              text: 'Failed to download certificate',
+                              confirmButtonColor: '#5C9A24'
+                            });
+                          }
+                        }
+                      }}
                         className={`bg-green-600 hover:bg-green-700 ${TAILWIND_COLORS.TEXT_INVERSE} px-6 py-3 rounded-lg flex items-center space-x-2`}
                       >
                         <LuDownload className="h-5 w-5" />
                         <span>Download Certificate</span>
                       </button>
-                    ) : null}
                   </div>
                 )}
               </div>

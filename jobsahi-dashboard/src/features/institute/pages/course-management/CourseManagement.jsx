@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { LuPlus, LuSettings } from 'react-icons/lu'
 import { MatrixCard } from '../../../../shared/components/metricCard'
 import { PillNavigation } from '../../../../shared/components/navigation'
@@ -10,7 +10,11 @@ import ManageCourse from './ManageCourse'
 
 export default function CourseManagement() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [activeTabIndex, setActiveTabIndex] = useState(0)
+  
+  // Check if we're on the create course route
+  const isCreateRoute = location.pathname.includes('/create')
 
   const handleCreateCourse = () => {
     navigate('/institute/course-management/create')
@@ -47,20 +51,27 @@ export default function CourseManagement() {
         </div>
 
         {/* Green Navigation Buttons using PillNavigation */}
-        <div className="mb-8">
+        <div className="mb-8 flex justify-center">
           <PillNavigation 
             tabs={navigationTabs}
-            activeTab={activeTabIndex}
-            onTabChange={setActiveTabIndex}
+            activeTab={isCreateRoute ? 1 : 0}
+            onTabChange={(index) => {
+              setActiveTabIndex(index)
+              if (index === 1) {
+                navigate('/institute/course-management/create')
+              } else {
+                navigate('/institute/course-management')
+              }
+            }}
             storageKey="institute_course_management_tab"
           />
         </div>
 
         {/* Content Area */}
-        {activeTabIndex === 0 ? (
-          <ManageCourse onNavigateToCreateCourse={() => setActiveTabIndex(1)} />
-        ) : (
+        {isCreateRoute ? (
           <CreateCourse />
+        ) : (
+          <ManageCourse onNavigateToCreateCourse={() => navigate('/institute/course-management/create')} />
         )}
       </div>
     </CourseProvider>

@@ -68,13 +68,33 @@ const ViewCoursePopup = ({ course, onClose }) => {
   let mediaFiles = []
   try {
     if (typeof c.media === 'string' && c.media.trim() !== '') {
-      mediaFiles = JSON.parse(c.media)
-      if (!Array.isArray(mediaFiles)) mediaFiles = [c.media]
+      const parsed = JSON.parse(c.media)
+      if (Array.isArray(parsed)) {
+        // Handle array of objects or strings
+        mediaFiles = parsed.map(item => {
+          if (typeof item === 'string') return item
+          if (typeof item === 'object' && item !== null) {
+            return item.url || item.name || String(item)
+          }
+          return String(item)
+        })
+      } else if (typeof parsed === 'object' && parsed !== null) {
+        // Single object
+        mediaFiles = [parsed.url || parsed.name || String(parsed)]
+      } else {
+        mediaFiles = [c.media]
+      }
     } else if (Array.isArray(c.media)) {
-      mediaFiles = c.media
+      mediaFiles = c.media.map(item => {
+        if (typeof item === 'string') return item
+        if (typeof item === 'object' && item !== null) {
+          return item.url || item.name || String(item)
+        }
+        return String(item)
+      })
     }
   } catch {
-    mediaFiles = c.media?.split(',').map(m => m.trim()) || []
+    mediaFiles = c.media?.split(',').map(m => m.trim()).filter(Boolean) || []
   }
 
   return (
@@ -291,12 +311,12 @@ const ViewCoursePopup = ({ course, onClose }) => {
                       <LuFileText className="text-white w-5 h-5" />
                     </div>
                     <a
-                      href={m}
+                      href={typeof m === 'string' ? m : (m?.url || m?.name || '#')}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm font-medium text-[#1A569A] truncate"
                     >
-                      {m.split('/').pop()}
+                      {typeof m === 'string' ? m.split('/').pop() : (m?.name || m?.url || 'Media file')}
                     </a>
                   </div>
                 ))}

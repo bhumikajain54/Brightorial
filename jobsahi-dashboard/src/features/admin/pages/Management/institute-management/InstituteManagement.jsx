@@ -7,7 +7,7 @@ import {
   LuBookOpen, 
   LuUsers, 
   LuAward, 
-  LuMessageSquare 
+  // LuMessageSquare 
 } from 'react-icons/lu'
 import PendingInstituteApprovals from './PendingInstitute'
 import CourseMonitoring from './CourseMonitoring'
@@ -153,17 +153,19 @@ export default function InstituteManagement() {
       />
 
       {/* Navigation Tabs */}
-      <PillNavigation 
-        tabs={navigationTabs}
-        activeTab={activeTab}
-        onTabChange={(newTab) => {
-          if (newTab !== activeTab) {
-            setPreviousTab(activeTab)
-            setActiveTab(newTab)
-          }
-        }}
-        storageKey="admin_institute_management_tab"
-      />
+      <div className="flex justify-center">
+        <PillNavigation 
+          tabs={navigationTabs}
+          activeTab={activeTab}
+          onTabChange={(newTab) => {
+            if (newTab !== activeTab) {
+              setPreviousTab(activeTab)
+              setActiveTab(newTab)
+            }
+          }}
+          storageKey="admin_institute_management_tab"
+        />
+      </div>
 
       {/* Conditional Content */}
       {activeTab === 0 && (

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { LuX, LuPlus } from 'react-icons/lu'
 import RichTextEditor from '../../../../shared/components/RichTextEditor.jsx'
 import { TAILWIND_COLORS } from '../../../../shared/WebConstant'
-import { getMethod, putMethod } from '../../../../service/api' // ✅ getMethod add
+import { getMethod, putMethod, putMultipart } from '../../../../service/api' // ✅ getMethod add
 import apiService from '../../services/serviceUrl'
 
 const EditCoursePopup = ({ course, onSave, onClose }) => {
@@ -13,7 +13,7 @@ const EditCoursePopup = ({ course, onSave, onClose }) => {
     description: '',
     taggedSkills: '',
     batchLimit: '',
-    courseStatus: 'Active',
+    courseStatus: 'Draft', // Default to Draft for new/blank courses
     mode: '',
     fee: '',
     certificationAllowed: true,
@@ -86,6 +86,23 @@ const EditCoursePopup = ({ course, onSave, onClose }) => {
       if (match) categoryValue = String(match.id)
     }
 
+    // Normalize status: API returns lowercase, but dropdown needs capitalized
+    // If blank/empty, default to "Draft"
+    let normalizedStatus = 'Draft'; // Default to Draft for blank status
+    if (course.status && String(course.status).trim() !== '') {
+      const statusLower = String(course.status).toLowerCase().trim();
+      if (statusLower === 'active') {
+        normalizedStatus = 'Active';
+      } else if (statusLower === 'inactive') {
+        normalizedStatus = 'Inactive';
+      } else if (statusLower === 'draft') {
+        normalizedStatus = 'Draft';
+      } else {
+        // If unknown status, capitalize first letter
+        normalizedStatus = String(course.status).charAt(0).toUpperCase() + String(course.status).slice(1).toLowerCase();
+      }
+    }
+
     setFormData(prev => ({
       ...prev,
       courseTitle: course.title || '',
@@ -96,7 +113,7 @@ const EditCoursePopup = ({ course, onSave, onClose }) => {
         ? course.skills.join(', ')
         : course.tagged_skills || '',
       batchLimit: course.batch_limit || course.batchLimit || '',
-      courseStatus: course.status || 'Active',
+      courseStatus: normalizedStatus, // ✅ Use normalized status
       mode: course.mode || '',
       fee: course.fee || '',
       certificationAllowed:
@@ -113,11 +130,12 @@ const EditCoursePopup = ({ course, onSave, onClose }) => {
             typeof m === 'string'
               ? {
                   id: `${index}-${m}`,
-                  name: m,
-                  url: '',
-                  type: ''
+                  name: m.split('/').pop() || m, // Extract filename from URL
+                  url: m, // Store full URL for existing media
+                  type: '',
+                  isNewFile: false // ✅ Mark as existing media
                 }
-              : m
+              : { ...m, isNewFile: false } // ✅ Mark as existing
           )
         : []
     )
@@ -139,8 +157,10 @@ const EditCoursePopup = ({ course, onSave, onClose }) => {
     const newMedia = files.map(file => ({
       id: Date.now() + Math.random(),
       name: file.name,
+      file: file, // ✅ Store actual file object for upload
       url: URL.createObjectURL(file),
-      type: file.type
+      type: file.type,
+      isNewFile: true // ✅ Flag to identify new files
     }))
     setSelectedMedia(prev => [...prev, ...newMedia])
   }
@@ -179,41 +199,89 @@ const EditCoursePopup = ({ course, onSave, onClose }) => {
       return
     }
 
-    const payload = {
-      title: formData.courseTitle,
-      description: formData.description,
-      duration: parseInt(formData.duration),
-      fee: parseFloat(formData.fee),
-      // ✅ category direct as ID (from select)
-      category_id: formData.category ? parseInt(formData.category) : 0,
-      tagged_skills: formData.taggedSkills,
-      batch_limit: parseInt(formData.batchLimit),
-      status: formData.courseStatus,
-      // instructor_name: removed - instructor assigned at batch level, not course level
-      mode: formData.mode,
-      certification_allowed: formData.certificationAllowed ? 1 : 0,
-      module_title: formData.moduleTitle || '',
-      module_description: formData.moduleDescription || '',
-      media:
-        selectedMedia && selectedMedia.length > 0
-          ? selectedMedia.map(m => m.name || m).join(', ')
-          : '',
-      admin_action: 'approved'
-    }
-
     try {
-      const res = await putMethod({
-        apiUrl: `${apiService.updateCourse}?id=${course.id}`,
-        payload
-      })
+      let res
 
-      if (res?.status) {
-        onSave(payload)
+      // ✅ Check if there are new files to upload
+      const newFiles = selectedMedia.filter(m => m.isNewFile && m.file)
+      const existingMedia = selectedMedia.filter(m => !m.isNewFile)
+
+      if (newFiles.length > 0) {
+        // ✅ Use FormData for file uploads
+        const formDataToSend = new FormData()
+        formDataToSend.append('title', formData.courseTitle)
+        formDataToSend.append('description', formData.description)
+        formDataToSend.append('duration', parseInt(formData.duration))
+        formDataToSend.append('fee', parseFloat(formData.fee))
+        formDataToSend.append('category_id', formData.category ? parseInt(formData.category) : 0)
+        formDataToSend.append('tagged_skills', formData.taggedSkills || '')
+        formDataToSend.append('batch_limit', parseInt(formData.batchLimit))
+        formDataToSend.append('status', formData.courseStatus.toLowerCase())
+        formDataToSend.append('mode', formData.mode.toLowerCase())
+        formDataToSend.append('certification_allowed', formData.certificationAllowed ? 1 : 0)
+        formDataToSend.append('module_title', formData.moduleTitle || '')
+        formDataToSend.append('module_description', formData.moduleDescription || '')
+        formDataToSend.append('admin_action', 'approved')
+
+        // ✅ Add existing media URLs if any
+        if (existingMedia.length > 0) {
+          const existingUrls = existingMedia.map(m => m.url || m.name).filter(Boolean)
+          if (existingUrls.length > 0) {
+            formDataToSend.append('media', JSON.stringify(existingUrls))
+          }
+        }
+
+        // ✅ Add new files
+        newFiles.forEach(fileObj => {
+          if (fileObj.file) {
+            formDataToSend.append('media[]', fileObj.file)
+          }
+        })
+
+        res = await putMultipart({
+          apiUrl: `${apiService.updateCourse}?id=${course.id}`,
+          data: formDataToSend
+        })
+      } else {
+        // ✅ No new files, use regular PUT
+        const payload = {
+          title: formData.courseTitle,
+          description: formData.description,
+          duration: parseInt(formData.duration),
+          fee: parseFloat(formData.fee),
+          category_id: formData.category ? parseInt(formData.category) : 0,
+          tagged_skills: formData.taggedSkills || '',
+          batch_limit: parseInt(formData.batchLimit),
+          status: formData.courseStatus.toLowerCase(),
+          mode: formData.mode.toLowerCase(),
+          certification_allowed: formData.certificationAllowed ? 1 : 0,
+          module_title: formData.moduleTitle || '',
+          module_description: formData.moduleDescription || '',
+          admin_action: 'approved'
+        }
+
+        // ✅ Include existing media if any
+        if (selectedMedia.length > 0) {
+          const mediaUrls = selectedMedia.map(m => m.url || m.name).filter(Boolean)
+          if (mediaUrls.length > 0) {
+            payload.media = JSON.stringify(mediaUrls)
+          }
+        }
+
+        res = await putMethod({
+          apiUrl: `${apiService.updateCourse}?id=${course.id}`,
+          payload
+        })
+      }
+
+      if (res?.status || res?.success) {
+        onSave(res)
         onClose()
       } else {
         alert(`❌ Update failed: ${res?.message || 'Unknown error'}`)
       }
     } catch (err) {
+      console.error('Update course error:', err)
       alert('Something went wrong while updating the course.')
     }
   }
@@ -378,11 +446,13 @@ const EditCoursePopup = ({ course, onSave, onClose }) => {
                 fee <span className="text-red-500">*</span>
               </label>
               <input
-                type="text"
+                type="number"
                 value={formData.fee}
                 onChange={e => handleInputChange('fee', e.target.value)}
                 className={getInputClass('fee')}
                 placeholder="e.g. 15000"
+                min="0"
+                step="1"
               />
             </div>
 
@@ -470,11 +540,11 @@ const EditCoursePopup = ({ course, onSave, onClose }) => {
                   <div className="space-y-2 max-h-32 overflow-y-auto">
                     {selectedMedia.map(media => (
                       <div
-                        key={media.id || media.name || media}
+                        key={media.id || media.name || `media-${Math.random()}`}
                         className="flex items-center justify-between bg-gray-50 rounded-lg p-2"
                       >
                         <span className="text-sm text-gray-700 truncate">
-                          {media.name || media}
+                          {media.name || media.url || 'Unnamed file'}
                         </span>
                         <button
                           onClick={() =>

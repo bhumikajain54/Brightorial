@@ -538,8 +538,8 @@ const fetchStudentDetails = async (studentId) => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredStudents.map((student) => (
-                <tr key={student.id} className="hover:bg-gray-50 transition-colors">
+              {filteredStudents.map((student, index) => (
+                <tr key={student.student_id || student.id || student.user_id || `student-${index}`} className="hover:bg-gray-50 transition-colors">
                   <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4">
                     <div className="flex items-center">
                       <div className="w-5 h-5 sm:w-6 sm:h-6 bg-gray-300 rounded-full mr-2 sm:mr-3 flex-shrink-0"></div>

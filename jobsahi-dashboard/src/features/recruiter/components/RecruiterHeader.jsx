@@ -277,9 +277,25 @@ export default function RecruiterHeader({ toggleSidebar }) {
     }
   }, [])
 
+  // Check if admin is impersonating
+  const isAdminImpersonating = typeof window !== 'undefined' && localStorage.getItem('isAdminImpersonating') === 'true'
+  const recruiterName = user.user_name || user.company_name || 'Recruiter'
+
   return (
-    <header className={`sticky top-0 z-30 flex items-center justify-between ${TAILWIND_COLORS.HEADER_BG} px-2 sm:px-4 md:px-6 py-2 sm:py-3 border-b ${TAILWIND_COLORS.BORDER}`}>
-      <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
+    <>
+      {/* Admin Impersonation Banner */}
+      {isAdminImpersonating && (
+        <div className="sticky top-0 z-40 bg-yellow-500 text-white px-4 py-2 text-sm font-medium flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Admin logged in - Dashboard is {recruiterName}'s</span>
+          </div>
+        </div>
+      )}
+      <header className={`sticky ${isAdminImpersonating ? 'top-8' : 'top-0'} z-30 flex items-center justify-between ${TAILWIND_COLORS.HEADER_BG} px-2 sm:px-4 md:px-6 py-2 sm:py-3 border-b ${TAILWIND_COLORS.BORDER}`}>
+        <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
         <Button className="p-1.5 sm:p-2 rounded bg-white " onClick={toggleSidebar} aria-label="Toggle Sidebar" variant="unstyled">
           <svg viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2" className="w-5 h-5 sm:w-6 sm:h-6">
             <path d="M3 6h18M3 12h18M3 18h18"/>
@@ -415,5 +431,6 @@ export default function RecruiterHeader({ toggleSidebar }) {
         </div>
       </div>
     </header>
+    </>
   )
 }

@@ -363,6 +363,7 @@ function ViewDetailsModal({ institute, isOpen, onClose }) {
 }
 
 export default function PendingInstituteApprovals({ institutes: initialInstitutes }) {
+  const navigate = useNavigate();
   const [viewDetailsModal, setViewDetailsModal] = useState({ isOpen: false, institute: null })
   const [filterStatus, setFilterStatus] = useState('all') // 'all', 'pending', 'approved', 'rejected'
   const [institutes, setInstitutes] = useState(initialInstitutes)
@@ -707,24 +708,24 @@ export default function PendingInstituteApprovals({ institutes: initialInstitute
               localStorage.setItem("adminSessionUser", currentAdminUser);
             }
 
-            // Create user object for institute
+            // Create user object for institute (but keep admin token for API calls)
             const instituteUser = {
               id: institute.id || institute.institute_id,
-              user_name: institute.name || institute.user_name,
+              user_name: institute.institute_name || institute.name || institute.user_name,
               email: institute.email,
               role: "institute",
-              phone: institute.phone,
+              phone: institute.phone || institute.phone_number,
+              // Store original institute ID for API calls
+              original_institute_id: institute.id || institute.institute_id,
             };
 
-            // Generate a temporary token (or call API if available)
-            // For now, we'll create a simple token-like string
-            // In production, you should call an admin API endpoint to get a valid token
-            const tempToken = `admin_impersonate_${institute.id || institute.institute_id}_${Date.now()}`;
-
-            // Set institute's session
-            localStorage.setItem("authToken", tempToken);
+            // Use admin's actual token (not a fake one) so API calls work
+            // The backend should handle admin impersonation based on the admin token
+            // Set institute's user info but keep admin's token
+            localStorage.setItem("authToken", currentAdminToken); // Keep admin token
             localStorage.setItem("authUser", JSON.stringify(instituteUser));
             localStorage.setItem("isAdminImpersonating", "true");
+            localStorage.setItem("impersonatedUserId", institute.id || institute.institute_id); // Store institute ID
 
             Swal.fire({
               title: 'Success!',

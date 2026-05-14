@@ -1,0 +1,48 @@
+<?php
+// reports.php - Get reports with role-based access
+require_once '../cors.php';
+
+// Authenticate JWT - allow all roles
+$decoded = authenticateJWT(['admin', 'recruiter', 'institute', 'student']);
+$user_role = $decoded['role']; // role from JWT
+$user_id = $decoded['user_id']; // user ID from JWT
+
+try {
+    if ($user_role === 'admin') {
+        // Admin sees all pending + approved records
+        $stmt = $conn->prepare("SELECT * FROM reports ORDER BY generated_at DESC");
+    } else {
+        // Other roles see only approved records
+        $stmt = $conn->prepare("SELECT * FROM reports WHERE admin_action = 'approved' ORDER BY generated_at DESC");
+    }
+
+    if ($stmt->execute()) {
+        $result = $stmt->get_result();
+        $reports = [];
+
+        while ($row = $result->fetch_assoc()) {
+            $reports[] = $row;
+        }
+
+        echo json_encode([
+            "status" => true,
+            "message" => "Reports retrieved successfully",
+            "data" => $reports,
+            "total_records" => count($reports)
+        ]);
+    } else {
+        echo json_encode([
+            "status" => false,
+            "message" => "Failed to fetch reports",
+            "error" => $stmt->error
+        ]);
+    }
+} catch (Exception $e) {
+    echo json_encode([
+        "status" => false,
+        "message" => "Error: " . $e->getMessage()
+    ]);
+}
+
+$conn->close();
+?>

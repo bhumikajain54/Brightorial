@@ -40,15 +40,20 @@ const service = {
     getJobs: '/jobs/jobs.php',
     getCourses: '/courses/courses.php',
     getJobDetail: '/jobs/job-detail.php',
+    updateJobStatus: '/admin/update_job_status.php',
 
-    //campus drive
-    getCampusDrives: '/campus/get_campus_drives.php',
-    getCampusDriveDetails: '/campus/get_campus_drive_details.php',
-    createCampusDrive: '/campus/create_campus_drive.php',
-    updateCampusDrive: '/campus/update_campus_drive.php',
-    getCampusDriveApplications: '/campus/get_campus_drive_applications.php',
-    getCampusDriveStats: '/campus/get_campus_drive_stats.php',
-
+    // Campus Drive APIs
+    createCampusDrive: '/campus_drive/admin/create_campus_drive.php',
+    updateCampusDrive: '/campus_drive/admin/update_campus_drive.php',
+    getCampusDrives: '/campus_drive/admin/get_campus_drives.php',
+    getCampusDriveDetails: '/campus_drive/admin/get_campus_drive_details.php',
+    addCompanyToDrive: '/campus_drive/admin/add_company_to_drive.php',
+    updateDriveCompany: '/campus_drive/admin/update_drive_company.php',
+    removeCompanyFromDrive: '/campus_drive/admin/remove_company_from_drive.php',
+    getCampusApplications: '/campus_drive/admin/get_applications.php',
+    updateApplicationStatus: '/campus_drive/admin/update_application_status.php',
+    assignInterview: '/campus_drive/admin/assign_interview.php',
+    getApplicationStats: '/campus_drive/admin/get_application_stats.php',
 
 }
 

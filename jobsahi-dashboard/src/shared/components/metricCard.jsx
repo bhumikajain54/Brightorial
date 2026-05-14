@@ -66,9 +66,13 @@ export const MetricPillButton = ({
 export const MetricPillRow = ({ items = [], className = "" }) => {
   return (
     <div className={`flex flex-wrap items-center gap-3 ${className}`}>
-      {items.map((item) => (
-        <MetricPillButton key={item.key ?? item.label} {...item} />
-      ))}
+      {items.map((item) => {
+        // Extract key from item to avoid spreading it into props
+        const { key, ...buttonProps } = item;
+        return (
+          <MetricPillButton key={key ?? item.label} {...buttonProps} />
+        );
+      })}
     </div>
   );
 };

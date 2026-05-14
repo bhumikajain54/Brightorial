@@ -7,6 +7,24 @@ import Swal from "sweetalert2";
 import { Button } from "@shared/components/Button";
 import { TAILWIND_COLORS } from "@shared/WebConstant";
 
+// Helper function for user-specific localStorage keys
+const getUserSpecificKey = (baseKey) => {
+  try {
+    const authUser = localStorage.getItem("authUser");
+    if (authUser) {
+      const user = JSON.parse(authUser);
+      const userId = user.id || user.uid;
+      const userRole = user.role;
+      if (userId && userRole) {
+        return `${baseKey}_${userRole}_${userId}`;
+      }
+    }
+  } catch (error) {
+    console.error('Error getting user-specific key:', error);
+  }
+  return baseKey;
+};
+
 const PostJob = ({ onJobSubmit }) => {
   const [formData, setFormData] = useState({
     jobTitle: "",
@@ -155,8 +173,9 @@ const PostJob = ({ onJobSubmit }) => {
         isDraft: true,
       };
 
+      const draftsKey = getUserSpecificKey('job_drafts');
       // Get existing drafts from localStorage
-      const existingDrafts = JSON.parse(localStorage.getItem('job_drafts') || '[]');
+      const existingDrafts = JSON.parse(localStorage.getItem(draftsKey) || '[]');
       
       // Add new draft with unique ID
       const draftId = `draft_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -165,7 +184,7 @@ const PostJob = ({ onJobSubmit }) => {
       existingDrafts.push(newDraft);
       
       // Save to localStorage
-      localStorage.setItem('job_drafts', JSON.stringify(existingDrafts));
+      localStorage.setItem(draftsKey, JSON.stringify(existingDrafts));
       
       // ✅ Trigger custom event to notify ManageJob to refresh
       window.dispatchEvent(new Event('draftSaved'));
@@ -321,13 +340,15 @@ const PostJob = ({ onJobSubmit }) => {
         // ✅ If this was saved from a draft, remove it from cache
         const draftId = formData.draftId;
         if (draftId) {
-          const existingDrafts = JSON.parse(localStorage.getItem('job_drafts') || '[]');
+          const draftsKey = getUserSpecificKey('job_drafts');
+          const existingDrafts = JSON.parse(localStorage.getItem(draftsKey) || '[]');
           const updatedDrafts = existingDrafts.filter(draft => draft.draftId !== draftId);
-          localStorage.setItem('job_drafts', JSON.stringify(updatedDrafts));
+          localStorage.setItem(draftsKey, JSON.stringify(updatedDrafts));
         }
         
         // ✅ Also check if formData has draftId from localStorage match
-        const allDrafts = JSON.parse(localStorage.getItem('job_drafts') || '[]');
+        const draftsKey = getUserSpecificKey('job_drafts');
+        const allDrafts = JSON.parse(localStorage.getItem(draftsKey) || '[]');
         const matchingDraft = allDrafts.find(draft => 
           draft.jobTitle === formData.jobTitle && 
           draft.location === formData.location &&
@@ -335,7 +356,7 @@ const PostJob = ({ onJobSubmit }) => {
         );
         if (matchingDraft && matchingDraft.draftId) {
           const updatedDrafts = allDrafts.filter(draft => draft.draftId !== matchingDraft.draftId);
-          localStorage.setItem('job_drafts', JSON.stringify(updatedDrafts));
+          localStorage.setItem(draftsKey, JSON.stringify(updatedDrafts));
           // Trigger refresh event
           window.dispatchEvent(new Event('draftSaved'));
         }
@@ -650,7 +671,7 @@ const PostJob = ({ onJobSubmit }) => {
                 <div className="flex gap-4">
                   <div className="flex-1">
                     <input
-                      type="text"
+                      type="number"
                       name="minSalary"
                       value={formData.minSalary}
                       onChange={handleInputChange}
@@ -666,7 +687,7 @@ const PostJob = ({ onJobSubmit }) => {
                   </div>
                   <div className="flex-1">
                     <input
-                      type="text"
+                      type="number"
                       name="maxSalary"
                       value={formData.maxSalary}
                       onChange={handleInputChange}

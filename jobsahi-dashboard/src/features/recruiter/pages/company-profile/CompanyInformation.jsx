@@ -43,6 +43,7 @@ const CompanyInfo = () => {
   });
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [passwordErrors, setPasswordErrors] = useState({});
+  const [phoneError, setPhoneError] = useState("");
 
   const [companyData, setCompanyData] = useState({
     name: "",
@@ -60,8 +61,18 @@ const CompanyInfo = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
+        // Get recruiter ID if admin is impersonating
+        const impersonatedUserId = localStorage.getItem("impersonatedUserId");
+        const params = impersonatedUserId ? { 
+          user_id: impersonatedUserId,
+          uid: impersonatedUserId,
+          recruiter_id: impersonatedUserId,
+          employer_id: impersonatedUserId
+        } : {};
+        
         const response = await getMethod({
           apiUrl: apiService.getRecruiterProfile,
+          params
         });
 
         console.log('📥 GET Profile Response:', response);
@@ -222,13 +233,44 @@ const CompanyInfo = () => {
   };
 
   const handleChange = (field, value) => {
-    setCompanyData((prev) => ({ ...prev, [field]: value }));
+    // Special handling for phone_number field - only numbers and max 10 digits
+    if (field === "phone_number") {
+      // Remove all non-numeric characters
+      const numericValue = value.replace(/\D/g, "");
+      // Limit to 10 digits
+      const limitedValue = numericValue.slice(0, 10);
+      
+      setCompanyData((prev) => ({ ...prev, [field]: limitedValue }));
+      
+      // Validate phone number
+      if (limitedValue.length > 0 && limitedValue.length < 10) {
+        setPhoneError("Phone number must be exactly 10 digits");
+      } else if (limitedValue.length === 10) {
+        setPhoneError(""); // Clear error if valid
+      } else {
+        setPhoneError(""); // Clear error if empty
+      }
+    } else {
+      setCompanyData((prev) => ({ ...prev, [field]: value }));
+    }
   };
 
   // =====================
   // 📌 Save / Update Company Info
   // =====================
   const handleSaveChanges = async () => {
+    // Validate phone number before saving
+    if (companyData.phone_number && companyData.phone_number.length !== 10) {
+      setPhoneError("Phone number must be exactly 10 digits");
+      Swal.fire({
+        title: "Validation Error",
+        text: "Phone number must be exactly 10 digits",
+        icon: "error",
+        confirmButtonText: "OK"
+      });
+      return;
+    }
+
     try {
       const payload = {
         company_name: companyData.name,
@@ -279,8 +321,18 @@ const CompanyInfo = () => {
         toast.success("✅ Profile updated successfully!");
         
         // ✅ Refresh profile data after successful update
+        // Get recruiter ID if admin is impersonating
+        const impersonatedUserId = localStorage.getItem("impersonatedUserId");
+        const refreshParams = impersonatedUserId ? { 
+          user_id: impersonatedUserId,
+          uid: impersonatedUserId,
+          recruiter_id: impersonatedUserId,
+          employer_id: impersonatedUserId
+        } : {};
+        
         const refreshResponse = await getMethod({
           apiUrl: apiService.getRecruiterProfile,
+          params: refreshParams
         });
 
         console.log('🔄 Refresh Profile Response:', refreshResponse);
@@ -484,12 +536,31 @@ const CompanyInfo = () => {
             <div>
               <label className="block text-sm font-medium mb-2">Phone Number</label>
               <input
-                type="text"
+                type="tel"
                 value={companyData.phone_number}
                 onChange={(e) => handleChange("phone_number", e.target.value)}
-                placeholder="Enter contact number"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                onBlur={() => {
+                  // Validate on blur
+                  if (companyData.phone_number && companyData.phone_number.length !== 10) {
+                    setPhoneError("Phone number must be exactly 10 digits");
+                  } else {
+                    setPhoneError("");
+                  }
+                }}
+                placeholder="Enter 10-digit contact number"
+                maxLength={10}
+                className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                  phoneError ? "border-red-500" : "border-gray-300"
+                }`}
               />
+              {phoneError && (
+                <p className="text-red-500 text-xs mt-1">{phoneError}</p>
+              )}
+              {companyData.phone_number.length > 0 && companyData.phone_number.length < 10 && (
+                <p className="text-gray-500 text-xs mt-1">
+                  {10 - companyData.phone_number.length} more digit(s) required
+                </p>
+              )}
             </div>
           </div>
 

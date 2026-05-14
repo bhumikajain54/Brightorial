@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Navbar from '../../components/Navbar'
 import Footer from '../../components/Footer'
 import NewsletterSubscription from '../../components/NewsletterSubscription'
@@ -20,6 +20,8 @@ const Blogs = () => {
   const [email, setEmail] = useState('')
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [selectedBlog, setSelectedBlog] = useState(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const blogsPerPage = 6 // Number of blogs to show per page
   const [commentForm, setCommentForm] = useState({
     name: '',
     email: '',
@@ -124,6 +126,18 @@ const Blogs = () => {
     const matchesCategory = selectedCategory === 'all' || blog.category === selectedCategory
     return matchesSearch && matchesCategory
   })
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredBlogs.length / blogsPerPage)
+  const startIndex = (currentPage - 1) * blogsPerPage
+  const endIndex = startIndex + blogsPerPage
+  const paginatedBlogs = filteredBlogs.slice(startIndex, endIndex)
+  const shouldShowPagination = filteredBlogs.length > blogsPerPage
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm, selectedCategory])
 
   const formatDate = (dateString) => {
     const date = new Date(dateString)
@@ -336,7 +350,7 @@ const Blogs = () => {
                 {/* Blog Articles Grid */}
                 {filteredBlogs.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 xl:gap-8 mb-8">
-                    {filteredBlogs.map((blog) => (
+                    {paginatedBlogs.map((blog) => (
                       <article
                         key={blog.id}
                         className="flex flex-col bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer focus:outline-none focus:ring-4 focus:ring-green-100"
@@ -414,33 +428,52 @@ const Blogs = () => {
                   </div>
                 )}
 
-                {/* Pagination */}
-                <div className="flex items-center justify-center space-x-4">
-                  <button className={`w-10 h-10 flex items-center justify-center ${TEXT_COLORS.ACCENT_GREEN} hover:bg-green-50 rounded-full transition-colors`}>
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                  
-                  {[1, 2, 3, 4].map((page) => (
-                    <button
-                      key={page}
-                      className={`w-10 h-10 flex items-center justify-center rounded-full text-sm font-medium transition-colors ${
-                        page === 1
-                          ? `${BG_COLORS.ACCENT_GREEN} ${TEXT_COLORS.NEUTRAL_WHITE}`
-                          : 'text-gray-600 hover:bg-gray-100'
+                {/* Pagination - Only show if there are more blogs than can fit on one page */}
+                {shouldShowPagination && (
+                  <div className="flex items-center justify-center space-x-4">
+                    <button 
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors ${
+                        currentPage === 1
+                          ? 'text-gray-300 cursor-not-allowed'
+                          : `${TEXT_COLORS.ACCENT_GREEN} hover:bg-green-50`
                       }`}
                     >
-                      {page}
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
                     </button>
-                  ))}
-                  
-                  <button className={`w-10 h-10 flex items-center justify-center ${TEXT_COLORS.ACCENT_GREEN} hover:bg-green-50 rounded-full transition-colors`}>
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                </div>
+                    
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`w-10 h-10 flex items-center justify-center rounded-full text-sm font-medium transition-colors ${
+                          page === currentPage
+                            ? `${BG_COLORS.ACCENT_GREEN} ${TEXT_COLORS.NEUTRAL_WHITE}`
+                            : 'text-gray-600 hover:bg-gray-100'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                    
+                    <button 
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                      className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors ${
+                        currentPage === totalPages
+                          ? 'text-gray-300 cursor-not-allowed'
+                          : `${TEXT_COLORS.ACCENT_GREEN} hover:bg-green-50`
+                      }`}
+                    >
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

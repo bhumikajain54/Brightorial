@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  LuFileText,
-  LuFileSpreadsheet,
   LuUsers,
   LuUserCheck,
   LuPercent,
@@ -11,7 +9,6 @@ import BarChart from "../../../shared/components/charts/BarChart";
 import TradePieChart from "../../../shared/components/charts/TradePieChart";
 import { getChartColors } from "../../../shared/utils/chartColors";
 import { Horizontal4Cards, MatrixCard } from "../../../shared/components/metricCard";
-import DynamicButton from "../../../shared/components/DynamicButton";
 import { TAILWIND_COLORS } from "../../../shared/WebConstant";
 import { getMethod } from "../../../service/api";
 import apiService from "../services/serviceUrl";
@@ -53,7 +50,82 @@ const AnalyticsReports = () => {
   // ==========================
   // 📊 Map Backend → Charts
   // ==========================
-  const applicationsData = analyticsData
+  // Default empty data structures for charts
+  const defaultApplicationsData = {
+    labels: [],
+    datasets: [
+      {
+        label: "Total Applications",
+        data: [],
+        backgroundColor: chartColors.info,
+        borderRadius: 4,
+      },
+      {
+        label: "Shortlisted",
+        data: [],
+        backgroundColor: chartColors.success,
+        borderRadius: 4,
+      },
+      {
+        label: "Hired",
+        data: [],
+        backgroundColor: chartColors.warning,
+        borderRadius: 4,
+      },
+    ],
+  };
+
+  const defaultSourceOfHireData = {
+    labels: [],
+    datasets: [
+      {
+        data: [],
+        backgroundColor: [
+          chartColors.info,
+          chartColors.success,
+          chartColors.warning,
+          chartColors.error,
+          chartColors.primary,
+        ],
+        borderWidth: 0,
+      },
+    ],
+  };
+
+  const defaultKeyMetricsData = [
+    {
+      title: "Total Jobs",
+      value: 0,
+      icon: <LuUsers />,
+    },
+    {
+      title: "Total Applications",
+      value: 0,
+      icon: <LuUsers />,
+    },
+    {
+      title: "Total Interviews",
+      value: 0,
+      icon: <LuUserCheck />,
+    },
+    {
+      title: "Total Hires",
+      value: 0,
+      icon: <LuUserCheck />,
+    },
+    {
+      title: "Interview-to-Hire",
+      value: "0%",
+      icon: <LuPercent />,
+    },
+    {
+      title: "Avg Cost per Hire",
+      value: "$0",
+      icon: <LuDollarSign />,
+    },
+  ];
+
+  const applicationsData = analyticsData?.applications_by_department?.length > 0
     ? {
         labels: analyticsData.applications_by_department.map((d) => d.department),
         datasets: [
@@ -77,9 +149,9 @@ const AnalyticsReports = () => {
           },
         ],
       }
-    : null;
+    : defaultApplicationsData;
 
-  const sourceOfHireData = analyticsData
+  const sourceOfHireData = analyticsData?.source_of_hire?.length > 0
     ? {
         labels: analyticsData.source_of_hire.map((s) => s.source),
         datasets: [
@@ -96,103 +168,42 @@ const AnalyticsReports = () => {
           },
         ],
       }
-    : null;
+    : defaultSourceOfHireData;
 
-  const keyMetricsData = analyticsData
+  const keyMetricsData = analyticsData?.key_metrics
     ? [
         {
           title: "Total Jobs",
-          value: analyticsData.key_metrics.total_jobs,
+          value: analyticsData.key_metrics.total_jobs || 0,
           icon: <LuUsers />,
         },
         {
           title: "Total Applications",
-          value: analyticsData.key_metrics.total_applications,
+          value: analyticsData.key_metrics.total_applications || 0,
           icon: <LuUsers />,
         },
         {
           title: "Total Interviews",
-          value: analyticsData.key_metrics.total_interviews,
+          value: analyticsData.key_metrics.total_interviews || 0,
           icon: <LuUserCheck />,
         },
         {
           title: "Total Hires",
-          value: analyticsData.key_metrics.total_hires,
+          value: analyticsData.key_metrics.total_hires || 0,
           icon: <LuUserCheck />,
         },
         {
           title: "Interview-to-Hire",
-          value: analyticsData.key_metrics.interview_to_hire_ratio,
+          value: analyticsData.key_metrics.interview_to_hire_ratio || "0%",
           icon: <LuPercent />,
         },
         {
           title: "Avg Cost per Hire",
-          value: analyticsData.key_metrics.avg_cost_per_hire,
+          value: analyticsData.key_metrics.avg_cost_per_hire || "$0",
           icon: <LuDollarSign />,
         },
       ]
-    : [];
-
-  // ==========================
-  // 📂 Export Handlers
-  // ==========================
-  const handleCSVDownload = () => {
-    if (!analyticsData) return;
-
-    const csvData = [
-      ["Department", "Total Applications", "Shortlisted", "Hired"],
-      ...analyticsData.applications_by_department.map((d) => [
-        d.department,
-        d.total_applications,
-        d.shortlisted,
-        d.hired,
-      ]),
-    ];
-
-    const csvContent = csvData.map((row) => row.join(",")).join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", "analytics_data.csv");
-    link.click();
-  };
-
-  const handlePDFDownload = () => {
-    if (!analyticsData) return;
-
-    const reportContent = `
-Recruiter Analytics Report
-Generated on: ${new Date().toLocaleDateString()}
-
-APPLICATIONS BY DEPARTMENT:
-${analyticsData.applications_by_department
-  .map(
-    (d) =>
-      `${d.department}: ${d.total_applications} applications, ${d.shortlisted} shortlisted, ${d.hired} hired`
-  )
-  .join("\n")}
-
-SOURCE OF HIRE:
-${analyticsData.source_of_hire
-  .map((s) => `${s.source}: ${s.count}`)
-  .join("\n")}
-
-KEY METRICS:
-${Object.entries(analyticsData.key_metrics)
-  .map(([k, v]) => `${k.replace(/_/g, " ")}: ${v}`)
-  .join("\n")}
-    `.trim();
-
-    const blob = new Blob([reportContent], {
-      type: "text/plain;charset=utf-8;",
-    });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", "analytics_report.txt");
-    link.click();
-  };
+    : defaultKeyMetricsData;
 
   // ==========================
   // 🧩 Render
@@ -205,14 +216,7 @@ ${Object.entries(analyticsData.key_metrics)
     );
   }
 
-  if (!analyticsData) {
-    return (
-      <div className="p-6 text-center text-red-500">
-        No analytics data available.
-      </div>
-    );
-  }
-
+  // Always render charts, even if no data (show blank graphs)
   return (
     <div className={`p-2 ${TAILWIND_COLORS.TEXT_PRIMARY}`}>
       {/* Header */}
@@ -240,29 +244,6 @@ ${Object.entries(analyticsData.key_metrics)
             <option value="Last year">Last year</option>
           </select>
         </div>
-
-        <div className="flex items-center gap-3">
-          <DynamicButton
-            onClick={handleCSVDownload}
-            backgroundColor="transparent"
-            textColor="var(--color-text-primary)"
-            border="2px solid var(--color-secondary)"
-            hoverBackgroundColor="var(--color-secondary)"
-            icon={<LuFileSpreadsheet className="w-4 h-4" />}
-          >
-            CSV
-          </DynamicButton>
-          <DynamicButton
-            onClick={handlePDFDownload}
-            backgroundColor="transparent"
-            textColor="var(--color-text-primary)"
-            border="2px solid var(--color-secondary)"
-            hoverBackgroundColor="var(--color-secondary)"
-            icon={<LuFileText className="w-4 h-4" />}
-          >
-            PDF
-          </DynamicButton>
-        </div>
       </div>
 
       {/* Charts Grid */}
@@ -271,6 +252,7 @@ ${Object.entries(analyticsData.key_metrics)
           <BarChart
             title="Applications by Department"
             data={applicationsData}
+            showExport={false}
           />
         </div>
         <div className="xl:col-span-1">

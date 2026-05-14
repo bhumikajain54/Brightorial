@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Swal from 'sweetalert2'
 import { COLORS, TAILWIND_COLORS } from '../WebConstant'
@@ -55,6 +55,25 @@ function AuthTabs({ mode, setMode }) {
 
 export default function Login() {
   const navigate = useNavigate()
+  
+  // Redirect if admin is impersonating (shouldn't see login page)
+  React.useEffect(() => {
+    const isAdminImpersonating = localStorage.getItem("isAdminImpersonating") === "true";
+    const authUser = localStorage.getItem("authUser");
+    
+    if (isAdminImpersonating && authUser) {
+      try {
+        const user = JSON.parse(authUser);
+        if (user.role === "recruiter") {
+          navigate("/recruiter/dashboard");
+        } else if (user.role === "institute") {
+          navigate("/institute/dashboard");
+        }
+      } catch (e) {
+        // Invalid user data, continue with login
+      }
+    }
+  }, [navigate]);
   const [mode, setMode] = useState('OTP') // 'OTP' | 'EMAIL'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -257,6 +276,28 @@ export default function Login() {
         console.log(response);
 
         if (response.status === true) {
+          // Clear old user-specific storage before login to prevent conflicts
+          try {
+            const oldKeys = [
+              'job_drafts',
+              'skillTestQuestions',
+              'institute_course_detail_id',
+            ];
+            oldKeys.forEach(key => {
+              // Remove old non-user-specific keys
+              localStorage.removeItem(key);
+              // Also remove any user-specific keys from previous session
+              for (let i = localStorage.length - 1; i >= 0; i--) {
+                const storedKey = localStorage.key(i);
+                if (storedKey && storedKey.startsWith(key + '_')) {
+                  localStorage.removeItem(storedKey);
+                }
+              }
+            });
+          } catch (error) {
+            console.error('Error clearing old storage:', error);
+          }
+          
           // Save token + expiry
           localStorage.setItem("authToken", response.token)
           localStorage.setItem("authExpiry", response.expires_in)

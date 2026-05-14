@@ -1,11 +1,11 @@
 import React, { useState, useCallback } from "react";
-import { LuBuilding2, LuUsers, LuSettings } from "react-icons/lu";
+import { LuBuilding2, LuUsers /* LuSettings */ } from "react-icons/lu";
 import { MatrixCard } from "../../../../shared/components/metricCard";
 import { PillNavigation } from "../../../../shared/components/navigation";
 import { TAILWIND_COLORS } from "../../../../shared/WebConstant";
 import InstituteProfile from "./InstituteProfile";
 import StaffManagement from "./StaffManagement";
-import NotificationPreferences from "./NotificationPreferences";
+// import NotificationPreferences from "./NotificationPreferences";
 
 const ProfileSetting = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -34,14 +34,14 @@ const ProfileSetting = () => {
       icon: LuUsers,
       component: <StaffManagement />
     },
-    {
-      id: "notification-preferences",
-      label: "Notification Preferences",
-      icon: LuSettings,
-      component: (
-        <NotificationPreferences onBack={handleReturnToPreviousTab} />
-      )
-    }
+    // {
+    //   id: "notification-preferences",
+    //   label: "Notification Preferences",
+    //   icon: LuSettings,
+    //   component: (
+    //     <NotificationPreferences onBack={handleReturnToPreviousTab} />
+    //   )
+    // }
   ];
 
   return (
@@ -54,7 +54,7 @@ const ProfileSetting = () => {
       />
 
       {/* Navigation Pills using PillNavigation */}
-      <div className="flex justify-center">
+      {/* <div className="flex justify-center">
         <PillNavigation
           tabs={tabs}
           activeTab={activeTab}
@@ -62,11 +62,12 @@ const ProfileSetting = () => {
           storageKey="institute_profile_setting_tab"
           className={TAILWIND_COLORS.TEXT_PRIMARY}
         />
-      </div>
+      </div> */}
 
       {/* Tab Content */}
       <div className="mt-5">
-        {tabs[activeTab]?.component}
+        {/* {tabs[activeTab]?.component} */}
+        {tabs[0]?.component}
       </div>
     </div>
   );

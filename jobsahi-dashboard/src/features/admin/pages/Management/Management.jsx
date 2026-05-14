@@ -1,33 +1,35 @@
-import React, { useState } from 'react'
-import { PillNavigation, MANAGEMENT_TABS } from '../../../../shared/components/navigation'
+import React, { useState, useEffect } from 'react'
 import { TAILWIND_COLORS } from '../../../../shared/WebConstant'
+import { PillNavigation } from '../../../../shared/components/navigation'
+import { LuUsers, LuBuilding2, LuGraduationCap } from 'react-icons/lu'
 import StudentManagement from './StudentManagement'
 import EmployerManagement from './employer-management/EmployerManagement'
 import InstituteManagement from './institute-management/InstituteManagement'
 
-// Active Tab Content Component
-function ActiveTabContent({ activeTab }) {
-  switch (activeTab) {
-    case 0:
-      return <StudentManagement />
-    case 1:
-      return <EmployerManagement />
-    case 2:
-      return <InstituteManagement />
-    default:
-      return <StudentManagement />
-  }
-}
-
 export default function Management() {
   const [activeTab, setActiveTab] = useState(0)
 
-  const handleTabChange = (tabIndex) => {
-    setActiveTab(tabIndex)
-  }
+  // Navigation tabs configuration
+  const managementTabs = [
+    {
+      id: 'student',
+      label: 'Student Management',
+      icon: LuUsers
+    },
+    {
+      id: 'employer',
+      label: 'Employer Management',
+      icon: LuBuilding2
+    },
+    {
+      id: 'institute',
+      label: 'Skill Partner Management',
+      icon: LuGraduationCap
+    }
+  ]
 
   // Debug: Check authentication status
-  React.useEffect(() => {
+  useEffect(() => {
     const token = localStorage.getItem("authToken")
     console.log('🔐 Auth Token Status:', token ? 'Present' : 'Missing')
     console.log('🔐 Token Value:', token ? `${token.substring(0, 20)}...` : 'No token')
@@ -35,24 +37,20 @@ export default function Management() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      {/* <div className="mb-6">
-        <h1 className={`text-3xl font-bold ${TAILWIND_COLORS.TEXT_PRIMARY} mb-2`}>Management Dashboard</h1>
-        <p className={TAILWIND_COLORS.TEXT_MUTED}>Manage candidates, recruiters, and skill partners from one place.</p>
-      </div> */}
-
-      {/* Navigation using shared component */}
-      <PillNavigation 
-        tabs={MANAGEMENT_TABS}
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        storageKey="admin_management_tab"
-      />
+      {/* Navigation Tabs */}
+      <div className="flex justify-center">
+        <PillNavigation 
+          tabs={managementTabs}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          storageKey="admin_management_tab"
+        />
+      </div>
 
       {/* Active Component */}
-      <ActiveTabContent activeTab={activeTab} />
+      {activeTab === 0 && <StudentManagement />}
+      {activeTab === 1 && <EmployerManagement />}
+      {activeTab === 2 && <InstituteManagement />}
     </div>
   )
 }
-
-

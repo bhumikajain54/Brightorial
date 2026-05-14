@@ -5,6 +5,7 @@ import { jwtDecode } from "jwt-decode";
 const RoleRoute = ({ children, allowedRoles }) => {
     const token = localStorage.getItem("authToken");
     const userStr = localStorage.getItem("authUser");
+    const isAdminImpersonating = localStorage.getItem("isAdminImpersonating") === "true";
     
     // Check if user is logged in
     if (!token || !userStr) {
@@ -21,22 +22,28 @@ const RoleRoute = ({ children, allowedRoles }) => {
         return <Navigate to="/login" replace />;
     }
 
-    // Check token expiry
-    try {
-        const payload = jwtDecode(token);
-        const now = Math.floor(Date.now() / 1000);
-        
-        if (payload.exp <= now) {
-            // Token expired, clear storage and redirect to login
-            localStorage.removeItem("authToken");
-            localStorage.removeItem("authUser");
-            return <Navigate to="/login" replace />;
+    // Skip JWT validation for admin impersonation tokens
+    if (!isAdminImpersonating || !token.startsWith("admin_impersonate_")) {
+        // Check token expiry only for real JWT tokens
+        try {
+            const payload = jwtDecode(token);
+            const now = Math.floor(Date.now() / 1000);
+            
+            if (payload.exp <= now) {
+                // Token expired, clear storage and redirect to login
+                localStorage.removeItem("authToken");
+                localStorage.removeItem("authUser");
+                return <Navigate to="/login" replace />;
+            }
+        } catch (e) {
+            // If it's not an impersonation token and decode fails, redirect to login
+            if (!isAdminImpersonating) {
+                localStorage.removeItem("authToken");
+                localStorage.removeItem("authUser");
+                return <Navigate to="/login" replace />;
+            }
+            // If it's an impersonation token, allow it even if decode fails
         }
-    } catch (e) {
-        // Invalid token, clear storage and redirect to login
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("authUser");
-        return <Navigate to="/login" replace />;
     }
 
     // Check if user's role matches allowed roles

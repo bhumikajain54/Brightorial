@@ -3,6 +3,24 @@ import { LuPencil, LuX, LuFileText, LuDownload, LuBriefcase } from 'react-icons/
 import { TAILWIND_COLORS } from '../../../../shared/WebConstant'
 import { Button } from '../../../../shared/components/Button'
 
+// Helper function for user-specific localStorage keys
+const getUserSpecificKey = (baseKey) => {
+  try {
+    const authUser = localStorage.getItem("authUser");
+    if (authUser) {
+      const user = JSON.parse(authUser);
+      const userId = user.id || user.uid;
+      const userRole = user.role;
+      if (userId && userRole) {
+        return `${baseKey}_${userRole}_${userId}`;
+      }
+    }
+  } catch (error) {
+    console.error('Error getting user-specific key:', error);
+  }
+  return baseKey;
+};
+
 const ManageSkillPage = () => {
   const [allQuestions, setAllQuestions] = useState([])
   const [editingJobId, setEditingJobId] = useState(null)
@@ -11,7 +29,8 @@ const ManageSkillPage = () => {
 
   // Load questions from localStorage
   useEffect(() => {
-    const savedQuestions = localStorage.getItem('skillTestQuestions')
+    const questionsKey = getUserSpecificKey('skillTestQuestions');
+    const savedQuestions = localStorage.getItem(questionsKey)
     if (savedQuestions) {
       try {
         setAllQuestions(JSON.parse(savedQuestions))
@@ -98,7 +117,8 @@ const ManageSkillPage = () => {
     })
 
     // Save to localStorage
-    localStorage.setItem('skillTestQuestions', JSON.stringify(updatedQuestions))
+    const questionsKey = getUserSpecificKey('skillTestQuestions');
+    localStorage.setItem(questionsKey, JSON.stringify(updatedQuestions))
     setAllQuestions(updatedQuestions)
     setEditingJobId(null)
     setEditingQuestions([])

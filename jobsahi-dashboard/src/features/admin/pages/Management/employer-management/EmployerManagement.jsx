@@ -276,17 +276,20 @@ else {
       </div>
 
       {/* Navigation Tabs */}
-      <PillNavigation 
-        tabs={navigationTabs}
-        activeTab={activeTab}
-        onTabChange={(newTab) => {
-          if (newTab !== activeTab) {
-            setPreviousTab(activeTab)
-            setActiveTab(newTab)
-          }
-        }}
-        storageKey="admin_employer_management_tab"
-      />
+      {/* Navigation Tabs */}
+      <div className="flex justify-center">
+        <PillNavigation 
+          tabs={navigationTabs}
+          activeTab={activeTab}
+          onTabChange={(newTab) => {
+            if (newTab !== activeTab) {
+              setPreviousTab(activeTab)
+              setActiveTab(newTab)
+            }
+          }}
+          storageKey="admin_employer_management_tab"
+        />
+      </div>
 
       {/* Conditional Content Rendering */}
       {activeTab === 0 && (

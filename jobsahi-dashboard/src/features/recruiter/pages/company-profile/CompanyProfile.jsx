@@ -1,15 +1,24 @@
-import React, { useState } from "react";
-import { LuBuilding2, LuUsers, LuSettings } from "react-icons/lu";
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { LuBuilding2, /* LuUsers */ /* LuSettings */ } from "react-icons/lu";
 import { MatrixCard } from "@shared/components/metricCard";
 import { PillNavigation } from "@shared/components/navigation";
 import CompanyInfo from "./CompanyInformation";
-import TeamManagement from "./TeamManagement";
-import Preferences from "./Preferences";
+// import TeamManagement from "./TeamManagement";
+// import Preferences from "./Preferences";
 import { getMethod, postMultipart, putMethod } from "../../../../service/api";
 import apiService from "../../services/serviceUrl";
 
 const CompanyProfile = () => {
+  const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(0);
+
+  // Read tab from URL query params
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    // Currently only one tab, but keeping for future expansion
+    setActiveTab(0);
+  }, [searchParams]);
 
   const tabs = [
     {
@@ -17,16 +26,16 @@ const CompanyProfile = () => {
       label: "Company Info",
       icon: LuBuilding2,
     },
-    {
-      id: "team-management",
-      label: "Team Management",
-      icon: LuUsers,
-    },
-    {
-      id: "preferences",
-      label: "Preferences",
-      icon: LuSettings,
-    }
+    // {
+    //   id: "team-management",
+    //   label: "Team Management",
+    //   icon: LuUsers,
+    // },
+    // {
+    //   id: "preferences",
+    //   label: "Preferences",
+    //   icon: LuSettings,
+    // }
   ];
 
   // ✅ Render component conditionally based on activeTab to ensure proper unmounting
@@ -34,10 +43,10 @@ const CompanyProfile = () => {
     switch (activeTab) {
       case 0:
         return <CompanyInfo key="company-info" />;
-      case 1:
-        return <TeamManagement key="team-management" onBack={() => setActiveTab(0)} />;
-      case 2:
-        return <Preferences key="preferences" onBack={() => setActiveTab(0)} />;
+      // case 1:
+      //   return <TeamManagement key="team-management" onBack={() => setActiveTab(0)} />;
+      // case 2:
+      //   return <Preferences key="preferences" onBack={() => setActiveTab(0)} />;
       default:
         return <CompanyInfo key="company-info" />;
     }
@@ -51,14 +60,14 @@ const CompanyProfile = () => {
         subtitle="Manage your company information and team settings"
       />
 
-      <div className="flex justify-center">
+      {/* <div className="flex justify-center">
         <PillNavigation
           tabs={tabs}
           activeTab={activeTab}
           onTabChange={setActiveTab}
           storageKey="recruiter_company_profile_tab"
         />
-      </div>
+      </div> */}
 
       <div className="mt-5">
         {renderTabContent()}

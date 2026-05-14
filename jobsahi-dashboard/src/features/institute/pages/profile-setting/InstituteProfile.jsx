@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { LuBuilding, LuUpload, LuSave, LuCheck, LuCircleAlert, LuX, LuLightbulb, LuLock, LuEye, LuEyeOff } from 'react-icons/lu'
+import { LuBuilding, LuUpload, LuSave, LuCheck, LuCircleAlert, LuX, LuLightbulb, LuLock, LuEye, LuEyeOff, LuCamera } from 'react-icons/lu'
 import Button from '../../../../shared/components/Button'
 import { TAILWIND_COLORS } from '../../../../shared/WebConstant'
 import Swal from 'sweetalert2'
@@ -185,7 +185,15 @@ export default function InstituteProfile() {
   const fetchInstituteProfile = async () => {
     try {
       setIsLoadingProfile(true)
-      const res = await getMethod({ apiUrl: apiService.getInstituteProfile })
+      // Get institute ID if admin is impersonating
+      const impersonatedUserId = localStorage.getItem("impersonatedUserId");
+      const params = impersonatedUserId ? { 
+        user_id: impersonatedUserId,
+        uid: impersonatedUserId,
+        institute_id: impersonatedUserId
+      } : {};
+      
+      const res = await getMethod({ apiUrl: apiService.getInstituteProfile, params })
 
       if (res?.success) {
         let profile = null
@@ -214,8 +222,22 @@ export default function InstituteProfile() {
           logo: null
         })
 
-        const logoURL = profile.institute_info?.institute_logo
-        if (logoURL) setLogoPreview(logoURL)
+        // Get logo URL - check multiple possible locations
+        const logoURL = profile.institute_info?.institute_logo 
+          || profile.institute_logo 
+          || profile.logo
+          || profile.documents?.institute_logo
+          || profile.documents?.logo
+        
+        if (logoURL) {
+          // If logoURL is a full URL, use it directly, otherwise construct it
+          const fullLogoUrl = logoURL.startsWith('http') 
+            ? logoURL 
+            : `${apiServiceShared.baseUrl || ''}${logoURL.startsWith('/') ? '' : '/'}${logoURL}`
+          setLogoPreview(fullLogoUrl)
+        } else {
+          setLogoPreview(null)
+        }
       }
 
     } catch (err) {
@@ -437,42 +459,52 @@ export default function InstituteProfile() {
                 className={`border-2 border-dashed ${TAILWIND_COLORS.BORDER} rounded-lg p-8 text-center`}
               >
                 {formData.logo || logoPreview ? (
-                  // Logo display with close button
+                  // Logo display with edit and remove buttons
                   <div 
-                    className="mx-auto w-48 h-48 bg-transparent rounded-xl flex items-center justify-center mb-4 relative overflow-hidden group"
+                    className="mx-auto w-48 h-48 bg-transparent rounded-xl flex items-center justify-center mb-4 relative overflow-hidden group cursor-pointer"
                     style={{ 
                       border: '3px solid #FF8C00',
                       boxShadow: '0 0 0 2px rgba(255, 140, 0, 0.2)',
                       position: 'relative'
                     }}
+                    onClick={() => document.getElementById('logo-upload').click()}
                   >
-                    {formData.logo ? (
-                      // ✅ New file selected
+                    {(formData.logo || logoPreview) ? (
+                      // ✅ Show logo - either new file or existing from API
                       <div className="w-full h-full flex items-center justify-center p-4">
                         <img
-                          src={URL.createObjectURL(formData.logo)}
+                          src={formData.logo ? URL.createObjectURL(formData.logo) : logoPreview}
                           alt="Institute Logo"
                           className="max-w-full max-h-full object-contain rounded-lg"
+                          onError={(e) => {
+                            // If image fails to load, show placeholder
+                            e.target.style.display = 'none'
+                            e.target.parentElement.innerHTML = '<div class="w-full h-full flex items-center justify-center text-gray-400">Image not found</div>'
+                          }}
                         />
                       </div>
-                    ) : (
-                      // ✅ Existing logo from API
-                      <div className="w-full h-full flex items-center justify-center p-4">
-                        <img
-                          src={logoPreview}
-                          alt="Institute Logo"
-                          className="max-w-full max-h-full object-contain rounded-lg"
-                        />
+                    ) : null}
+                    
+                    {/* Edit button overlay - appears on hover */}
+                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center rounded-xl">
+                      <div className="opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-lg">
+                        <LuCamera className="w-4 h-4 text-gray-700" />
+                        <span className="text-sm font-medium text-gray-700">Change Logo</span>
                       </div>
-                    )}
-                    {/* Close button overlay - White box visible, cross appears on hover with green background */}
+                    </div>
+                    
+                    {/* Remove button overlay - top right corner */}
                     <button
-                      onClick={handleLogoRemove}
-                      className="absolute top-2 right-2 w-8 h-8 bg-white hover:bg-green-600 rounded-md shadow-lg flex items-center justify-center transition-all duration-200 z-10 group"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleLogoRemove()
+                      }}
+                      className="absolute top-2 right-2 w-8 h-8 bg-white hover:bg-red-600 rounded-md shadow-lg flex items-center justify-center transition-all duration-200 z-20"
                       type="button"
                       aria-label="Remove logo"
+                      title="Remove logo"
                     >
-                      <LuX className="w-4 h-4 opacity-0 group-hover:opacity-100 text-white transition-all duration-200" />
+                      <LuX className="w-4 h-4 text-gray-600 group-hover:text-white transition-colors" />
                     </button>
                   </div>
                 ) : (

@@ -13,6 +13,24 @@ import {
 } from "react-icons/lu";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 import EditCard from "./EditCard";
+
+// Helper function for user-specific localStorage keys
+const getUserSpecificKey = (baseKey) => {
+  try {
+    const authUser = localStorage.getItem("authUser");
+    if (authUser) {
+      const user = JSON.parse(authUser);
+      const userId = user.id || user.uid;
+      const userRole = user.role;
+      if (userId && userRole) {
+        return `${baseKey}_${userRole}_${userId}`;
+      }
+    }
+  } catch (error) {
+    console.error('Error getting user-specific key:', error);
+  }
+  return baseKey;
+};
 import { getMethod, deleteMethod } from "../../../../service/api";
 import service from "../../services/serviceUrl";
 import { TAILWIND_COLORS } from "../../../../shared/WebConstant";
@@ -103,7 +121,8 @@ const ManageJob = ({ jobs: initialJobs = [], onEditJob, onDeleteJob, onNavigateT
       const dataToUse = rows;
 
       // ✅ Get drafts from localStorage and merge with API jobs
-      const drafts = JSON.parse(localStorage.getItem('job_drafts') || '[]');
+      const draftsKey = getUserSpecificKey('job_drafts');
+      const drafts = JSON.parse(localStorage.getItem(draftsKey) || '[]');
       
       const draftJobs = drafts.map(draft => ({
         ...draft,
@@ -148,7 +167,8 @@ const ManageJob = ({ jobs: initialJobs = [], onEditJob, onDeleteJob, onNavigateT
     window.addEventListener('draftSaved', handleDraftChange);
     // Also listen to storage event for cross-tab updates
     window.addEventListener('storage', (e) => {
-      if (e.key === 'job_drafts') {
+      const draftsKey = getUserSpecificKey('job_drafts');
+      if (e.key === draftsKey) {
         fetchJobs();
       }
     });
@@ -171,9 +191,10 @@ const ManageJob = ({ jobs: initialJobs = [], onEditJob, onDeleteJob, onNavigateT
       if (jobToDelete?.id) {
         // ✅ If it's a draft, remove from localStorage
         if (jobToDelete.isDraft || jobToDelete.draftId) {
-          const drafts = JSON.parse(localStorage.getItem('job_drafts') || '[]');
+          const draftsKey = getUserSpecificKey('job_drafts');
+          const drafts = JSON.parse(localStorage.getItem(draftsKey) || '[]');
           const updatedDrafts = drafts.filter(draft => draft.draftId !== jobToDelete.draftId && draft.draftId !== jobToDelete.id);
-          localStorage.setItem('job_drafts', JSON.stringify(updatedDrafts));
+          localStorage.setItem(draftsKey, JSON.stringify(updatedDrafts));
           // Trigger refresh event
           window.dispatchEvent(new Event('draftSaved'));
           await fetchJobs();

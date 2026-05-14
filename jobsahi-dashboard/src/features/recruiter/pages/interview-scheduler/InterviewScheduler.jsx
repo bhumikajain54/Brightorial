@@ -21,16 +21,6 @@ const InterviewScheduler = () => {
     }
   ]
 
-  const handleTabChange = (tabIndex) => {
-    setActiveTab(tabIndex)
-    if (tabIndex === 0) {
-      console.log('Schedule interviews clicked')
-      // TODO: Navigate to schedule interviews page
-    } else if (tabIndex === 1) {
-      console.log('Panel Management clicked')
-      // TODO: Navigate to panel management page
-    }
-  }
 
   return (
     <div className="p-2">
@@ -43,12 +33,12 @@ const InterviewScheduler = () => {
       </div>
 
       {/* Navigation Pills */}
-      <div className="">
+      <div className="flex justify-center mb-5">
         <PillNavigation
           tabs={tabs}
           activeTab={activeTab}
-        onTabChange={handleTabChange}
-        storageKey="recruiter_interview_scheduler_tab"
+          onTabChange={setActiveTab}
+          storageKey="recruiter_interview_scheduler_tab"
         />
       </div>
 

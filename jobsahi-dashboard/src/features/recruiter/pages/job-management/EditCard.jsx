@@ -356,9 +356,27 @@ const EditCard = ({ isOpen, onClose, job, onSave }) => {
 
         if (res?.status || res?.success) {
           // ✅ Remove draft from cache
-          const drafts = JSON.parse(localStorage.getItem('job_drafts') || '[]');
+          // Helper function for user-specific localStorage keys
+          const getUserSpecificKey = (baseKey) => {
+            try {
+              const authUser = localStorage.getItem("authUser");
+              if (authUser) {
+                const user = JSON.parse(authUser);
+                const userId = user.id || user.uid;
+                const userRole = user.role;
+                if (userId && userRole) {
+                  return `${baseKey}_${userRole}_${userId}`;
+                }
+              }
+            } catch (error) {
+              console.error('Error getting user-specific key:', error);
+            }
+            return baseKey;
+          };
+          const draftsKey = getUserSpecificKey('job_drafts');
+          const drafts = JSON.parse(localStorage.getItem(draftsKey) || '[]');
           const updatedDrafts = drafts.filter(d => d.draftId !== draftId);
-          localStorage.setItem('job_drafts', JSON.stringify(updatedDrafts));
+          localStorage.setItem(draftsKey, JSON.stringify(updatedDrafts));
           // Trigger refresh event
           window.dispatchEvent(new Event('draftSaved'));
 

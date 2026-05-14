@@ -43,7 +43,8 @@ const apiService = {
 
   // Certificate Templates
   createCertificateTemplate: "/certificate_templates/create_certificate_template.php",
-  certificateTemplates: "/certificate_templates/get_certificate_templates.php", // Used in CertificateGeneration.jsx - get all templates
+  certificateTemplates: "/certificate_templates/get_certificate_templates.php",
+  serveCertificate: "/certificates/serve_certificate.php", // Used in CertificateGeneration.jsx - get all templates
   getCertificateTemplate: "/certificate_templates/get_certificate_templates.php", // For Manage Template - get single template by ID (use ?id=5)
   certificateTemplatesList: "/certificate_templates/get_certificate_templates.php", // Used in ManageTemplate.jsx and CertificateGeneration.jsx - get all templates
   updateCertificateTemplate: "/certificate_templates/update_certificate_template.php", // For updating templates

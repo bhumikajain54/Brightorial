@@ -107,6 +107,25 @@ const UserDropdown = ({ user: propUser = { user_name: 'Admin', role: 'Administra
       await new Promise(resolve => setTimeout(resolve, 1000))
 
       if (response.status === true) {
+        // Clear user-specific storage before clearing all
+        try {
+          const userId = user.id || user.uid;
+          const userRole = user.role;
+          if (userId && userRole) {
+            const prefix = `_${userRole}_${userId}`;
+            const keysToRemove = [];
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+              const key = localStorage.key(i);
+              if (key && key.endsWith(prefix)) {
+                keysToRemove.push(key);
+              }
+            }
+            keysToRemove.forEach(key => localStorage.removeItem(key));
+          }
+        } catch (error) {
+          console.error('Error clearing user-specific storage:', error);
+        }
+        
         setShowLogoutModal(true)
         setIsOpen(false)
         navigate('/login')

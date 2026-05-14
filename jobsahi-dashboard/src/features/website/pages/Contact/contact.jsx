@@ -151,24 +151,6 @@ const Contact = () => {
           {/* Left visuals */}
           <div className="relative mb-6 lg:mb-0 flex flex-col items-center lg:items-start">
           <div className="w-full sm:w-[90%] md:w-[85%] lg:w-[80%] -mt-2 sm:-mt-3 md:-mt-4 lg:-mt-5 px-4 sm:px-5 md:px-6 pb-4 sm:pb-5 md:pb-6 mx-auto lg:mx-0">
-            {/* Contact Us Input Section - Before Image */}
-            <div className="mb-3 sm:mb-4 md:mb-5 lg:mb-6">
-              <div className="flex gap-2 sm:gap-3">
-                <div className="flex-1 bg-white rounded-xl p-2.5 sm:p-3 md:p-4 shadow-lg relative min-w-0">
-                  <input 
-                    type="text" 
-                    placeholder="Contact Us..." 
-                    className="w-full text-gray-700 bg-transparent border-none outline-none text-xs sm:text-sm md:text-base lg:text-lg placeholder:text-xs sm:placeholder:text-sm md:placeholder:text-base"
-                    readOnly
-                  />
-                </div>
-                <button className={`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 ${COLOR_CLASSES.bg.accentLime} rounded-xl flex items-center justify-center shadow-lg relative flex-shrink-0`}>
-                  <FaPhone className="text-white text-xs sm:text-sm md:text-base lg:text-lg" />
-                  <div className={`absolute inset-0 ${COLOR_CLASSES.bg.accentLime} rounded-xl opacity-30 blur-sm`}></div>
-                </button>
-              </div>
-            </div>
-            
             {/* Image Section */}
             <div className="relative mx-auto lg:mx-0">
               <div className="w-56 h-56 sm:w-60 sm:h-60 md:w-80 md:h-80 lg:w-96 lg:h-96 bg-blue-100 rounded-3xl relative overflow-hidden border-4 sm:border-[6px] md:border-8 lg:border-[12px] border-white mx-auto lg:mx-0">
@@ -181,7 +163,7 @@ const Contact = () => {
               <div className="absolute border-4 sm:border-4 md:border-[6px] lg:border-8 border-white -bottom-6 sm:-bottom-8 md:-bottom-10 left-1/2 -translate-x-1/2 sm:left-1/2 sm:-translate-x-1/2 md:left-40 md:translate-x-0 lg:left-72 lg:translate-x-0 w-20 h-16 sm:w-24 sm:h-20 md:w-32 md:h-24 lg:w-48 lg:h-40 bg-blue-100 rounded-2xl overflow-hidden">
                 <img 
                   src={contactSmallImage} 
-                  alt="Contact Us Small" 
+                  alt="Contact Us Small"
                   className="w-full h-full object-cover rounded-2xl"
                 />
               </div>

@@ -159,7 +159,11 @@ export default function ManageCourse({ onNavigateToCreateCourse }) {
   // Filter courses based on search and filters
   const filteredCourses = coursesData.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = !filters.status || course.status.toLowerCase() === filters.status.toLowerCase()
+    // Normalize status for filtering: blank/empty = "draft"
+    const courseStatus = course.status && String(course.status).trim() !== '' 
+      ? String(course.status).toLowerCase().trim() 
+      : 'draft';
+    const matchesStatus = !filters.status || courseStatus === filters.status.toLowerCase()
     
     // Match fields by category name or category ID (from API categories)
     const matchesFields = !filters.fields || (() => {
@@ -396,6 +400,7 @@ export default function ManageCourse({ onNavigateToCreateCourse }) {
                 <option value="">Status</option>
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
+                <option value="draft">Draft</option>
               </select>
               <LuChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
             </div>
@@ -502,17 +507,27 @@ export default function ManageCourse({ onNavigateToCreateCourse }) {
               <div key={course.id} className={`${TAILWIND_COLORS.CARD} p-6`}>
                 {/* Status */}
                 <div className="flex justify-end items-center mb-3">
-                  {course.status && (
-                    <span className={`${
-                      course.status.toLowerCase() === 'active' 
-                        ? TAILWIND_COLORS.BADGE_SUCCESS 
-                        : course.status.toLowerCase() === 'inactive'
-                        ? 'bg-red-100 text-red-800'
-                        : 'bg-gray-100 text-gray-800'
-                    } text-xs font-medium px-2.5 py-0.5 rounded-full`}>
-                      {course.status}
-                    </span>
-                  )}
+                  {(() => {
+                    // Normalize status: handle blank/empty as "Draft"
+                    const status = course.status && String(course.status).trim() !== '' 
+                      ? String(course.status).trim() 
+                      : 'Draft';
+                    const statusLower = status.toLowerCase();
+                    
+                    return (
+                      <span className={`${
+                        statusLower === 'active' 
+                          ? TAILWIND_COLORS.BADGE_SUCCESS 
+                          : statusLower === 'inactive'
+                          ? 'bg-red-100 text-red-800'
+                          : statusLower === 'draft'
+                          ? 'bg-yellow-100 text-yellow-800' // Draft badge (yellow/orange like inactive)
+                          : 'bg-gray-100 text-gray-800'
+                      } text-xs font-medium px-2.5 py-0.5 rounded-full`}>
+                        {status}
+                      </span>
+                    );
+                  })()}
                 </div>
 
                 {/* Course Title */}
@@ -577,12 +592,7 @@ export default function ManageCourse({ onNavigateToCreateCourse }) {
                     ₹{course.fee && course.fee > 0 ? course.fee.toLocaleString('en-IN', { maximumFractionDigits: 2 }) : '0'}
                   </div>
                   <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleBuyNow(course.id)}
-                      className={`${TAILWIND_COLORS.BTN_PRIMARY} px-4 py-2 rounded-lg text-sm font-medium transition-colors`}
-                    >
-                      Buy Now
-                    </button>
+                   
                     <button
                       onClick={() => handleAction('edit', course.id)}
                       className={`p-2 ${TAILWIND_COLORS.TEXT_MUTED} hover:text-[#5C9A24] transition-colors`}

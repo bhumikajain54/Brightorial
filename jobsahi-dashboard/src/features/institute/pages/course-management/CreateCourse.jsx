@@ -286,7 +286,7 @@ export default function CreateCourse() {
         formDataToSend.append('module_description', module_description || '')
 
         selectedMedia.forEach(file => {
-          formDataToSend.append('media_files[]', file.file)
+          formDataToSend.append('media[]', file.file)
         })
 
         res = await postMultipart({
@@ -647,11 +647,13 @@ export default function CreateCourse() {
               </div>
               <div className="flex-1">
                 <input 
-                  type="text" 
+                  type="number" 
                   value={formData.fee}
                   onChange={(e) => handleInputChange('fee', e.target.value)}
                   className={getInputClassName('fee')}
-                  placeholder="ex. 15,000"
+                  placeholder="ex. 15000"
+                  min="0"
+                  step="1"
                 />
                 {validationErrors.fee && (
                   <p className="text-red-500 text-sm mt-1">{validationErrors.fee}</p>

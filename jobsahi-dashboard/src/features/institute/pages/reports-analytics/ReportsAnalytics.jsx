@@ -107,12 +107,12 @@ export default function ReportsAnalytics() {
       </div>
 
       {/* Green Navigation Buttons using PillNavigation */}
-      <div className="mb-8">
+      <div className="mb-8 flex justify-center">
         <PillNavigation 
           tabs={navigationTabs}
           activeTab={activeTabIndex}
-        onTabChange={setActiveTabIndex}
-        storageKey="institute_reports_analytics_tab"
+          onTabChange={setActiveTabIndex}
+          storageKey="institute_reports_analytics_tab"
         />
       </div>
 

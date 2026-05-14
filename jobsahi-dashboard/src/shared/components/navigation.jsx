@@ -148,11 +148,30 @@ export const PillNavigation = ({
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
+  // Import user-specific localStorage utility
+  const getUserSpecificKey = (baseKey) => {
+    try {
+      const authUser = typeof window !== 'undefined' ? window.localStorage.getItem("authUser") : null;
+      if (authUser) {
+        const user = JSON.parse(authUser);
+        const userId = user.id || user.uid;
+        const userRole = user.role;
+        if (userId && userRole) {
+          return `${baseKey}_${userRole}_${userId}`;
+        }
+      }
+    } catch (error) {
+      console.error('Error getting user-specific key:', error);
+    }
+    return baseKey; // Fallback to base key
+  };
+
   // Load persisted tab on mount
   useEffect(() => {
     if (!storageKey || typeof window === 'undefined' || typeof onTabChange !== 'function') return
 
-    const storedValue = window.localStorage.getItem(storageKey)
+    const userSpecificKey = getUserSpecificKey(storageKey);
+    const storedValue = window.localStorage.getItem(userSpecificKey)
     if (storedValue === null) return
 
     const parsedValue = Number(storedValue)
@@ -170,7 +189,8 @@ export const PillNavigation = ({
   // Persist active tab whenever it changes
   useEffect(() => {
     if (!storageKey || typeof window === 'undefined') return
-    window.localStorage.setItem(storageKey, String(activeTab))
+    const userSpecificKey = getUserSpecificKey(storageKey);
+    window.localStorage.setItem(userSpecificKey, String(activeTab))
   }, [storageKey, activeTab])
 
   return (

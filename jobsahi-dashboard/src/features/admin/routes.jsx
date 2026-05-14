@@ -12,6 +12,7 @@ import AlertsAutomation from './pages/alert-automation/AlertAutomation.jsx'
 import SystemSetting from './pages/system-setting/SystemSetting.jsx'
 import AdminTools from './pages/tools-logs/AdminTools.jsx'
 import AdminProfile from '../../shared/auth/AdminProfile.jsx'
+import CampusDriveManagement from './pages/campus-drive/CampusDriveManagement.jsx'
 
 export default function AdminRoutes() {
   return (
@@ -21,6 +22,7 @@ export default function AdminRoutes() {
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="management" element={<Management />} />
         <Route path="job-control" element={<JobCourseControl />} />
+        <Route path="campus-drive" element={<CampusDriveManagement />} />
         <Route path="business-panel" element={<BusinessRevenue />} />
         <Route path="reports" element={<ReportAnalytics />} />
         <Route path="messaging-campaigns" element={<MessagingCampaigns />} />
