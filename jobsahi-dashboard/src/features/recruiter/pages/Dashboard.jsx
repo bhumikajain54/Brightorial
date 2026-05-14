@@ -54,7 +54,7 @@ const Dashboard = () => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [dataLoaded, setDataLoaded] = useState(false);
-  
+
   const handleViewDetails = (candidate) => {
     setSelectedCandidate(candidate);
     setIsViewModalOpen(true);
@@ -88,20 +88,20 @@ const Dashboard = () => {
     try {
       // Get recruiter ID if admin is impersonating
       const impersonatedUserId = localStorage.getItem("impersonatedUserId");
-      const params = impersonatedUserId ? { 
+      const params = impersonatedUserId ? {
         user_id: impersonatedUserId,
         uid: impersonatedUserId,
         recruiter_id: impersonatedUserId,
         employer_id: impersonatedUserId
       } : {};
-      
+
       const res = await getMethod({ apiUrl: service.getRecruiterProfile, params });
       if (res?.success || res?.status) {
         // Extract user_name from response structure: data.profiles[0].personal_info.user_name
-        const username = res.data?.profiles?.[0]?.personal_info?.user_name || 
-                         res.data?.user_name ||
-                         res.user_name ||
-                         "";
+        const username = res.data?.profiles?.[0]?.personal_info?.user_name ||
+          res.data?.user_name ||
+          res.user_name ||
+          "";
         if (username) {
           setRecruiterName(username);
         }
@@ -129,13 +129,13 @@ const Dashboard = () => {
     try {
       // Get recruiter ID if admin is impersonating
       const impersonatedUserId = localStorage.getItem("impersonatedUserId");
-      const params = impersonatedUserId ? { 
+      const params = impersonatedUserId ? {
         user_id: impersonatedUserId,
         uid: impersonatedUserId,
         recruiter_id: impersonatedUserId,
         employer_id: impersonatedUserId
       } : {};
-      
+
       const res = await getMethod({ apiUrl: service.getRecruiterJobs, params });
       if (res?.status) {
         // Check multiple possible response structures for dashboard stats
@@ -171,18 +171,18 @@ const Dashboard = () => {
     try {
       // Get recruiter ID if admin is impersonating
       const impersonatedUserId = localStorage.getItem("impersonatedUserId");
-      const params = impersonatedUserId ? { 
+      const params = impersonatedUserId ? {
         user_id: impersonatedUserId,
         uid: impersonatedUserId,
         recruiter_id: impersonatedUserId,
         employer_id: impersonatedUserId
       } : {};
-      
+
       const res = await getMethod({ apiUrl: service.getInterviewDetails, params });
       if (res?.status) {
         // Handle multiple possible response structures
         let dataArr = []
-        
+
         if (Array.isArray(res.current_month_interviews)) {
           dataArr = res.current_month_interviews
         } else if (Array.isArray(res.candidate_interview_details)) {
@@ -206,7 +206,7 @@ const Dashboard = () => {
           .map((item) => {
             const interviewDate = item.scheduled_at || item.scheduled_date || item.date || item.interview_date;
             if (!interviewDate) return null;
-            
+
             try {
               let date;
               // Handle "YYYY-MM-DD" format
@@ -216,7 +216,7 @@ const Dashboard = () => {
               } else {
                 date = new Date(interviewDate);
               }
-              
+
               if (isNaN(date.getTime())) return null;
               return date.getDate();
             } catch {
@@ -254,13 +254,13 @@ const Dashboard = () => {
     try {
       // Get recruiter ID if admin is impersonating
       const impersonatedUserId = localStorage.getItem("impersonatedUserId");
-      const params = impersonatedUserId ? { 
+      const params = impersonatedUserId ? {
         user_id: impersonatedUserId,
         uid: impersonatedUserId,
         recruiter_id: impersonatedUserId,
         employer_id: impersonatedUserId
       } : {};
-      
+
       const res = await getMethod({ apiUrl: service.getWeeklyApplicants, params });
       if (res?.status) {
         const chartLabels = res.chart_data.map((item) => item.trade);
@@ -348,54 +348,54 @@ const Dashboard = () => {
         }));
 
         const detailed =
-  Array.isArray(res.all_applicants?.data) &&
-  res.all_applicants.data.map((a) => ({
-    id: a.application_id,
-    name: a.name,
-    email: a.email,
-    phone_number: a.phone_number || "—",
-    education: a.education || "—",
-    applied_for: a.applied_for || a.job_title || "—",
-    job_title: a.job_title || "—",
-    status: a.status || "Pending",
-    verified: a.verified ? "Yes" : "No",
-    location: a.location || "—",
-    job_type: a.job_type || "—",
-    skills: Array.isArray(a.skills)
-      ? a.skills
-      : typeof a.skills === "string"
-      ? a.skills.split(",")
-      : [],
-    experience: (() => {
-      try {
-        return JSON.parse(a.experience || "[]");
-      } catch {
-        return [];
-      }
-    })(),
-    bio: a.bio || "",
-    cover_letter: a.cover_letter || "",
-    portfolio_link: a.portfolio_link || "",
-    resume_url: a.resume_url || "",
-    applied_date: a.applied_date || "",
-    social_links: (() => {
-      try {
-        if (Array.isArray(a.social_links)) {
-          return a.social_links;
-        } else if (typeof a.social_links === 'string' && a.social_links.trim() !== '') {
-          const parsed = JSON.parse(a.social_links);
-          return Array.isArray(parsed) ? parsed : (parsed ? [parsed] : []);
-        }
-        return [];
-      } catch {
-        return [];
-      }
-    })(),
-    // Add job_id and student_id for schedule interview
-    job_id: a.job_id || a.jobId || a.applied_job_id || a.job?.job_id || a.job?.id || null,
-    student_id: a.student_id || a.studentId || a.user_id || a.id || a.application_id || null,
-    application_id: a.application_id || null,
-  }));
+          Array.isArray(res.all_applicants?.data) &&
+          res.all_applicants.data.map((a) => ({
+            id: a.application_id,
+            name: a.name,
+            email: a.email,
+            phone_number: a.phone_number || "—",
+            education: a.education || "—",
+            applied_for: a.applied_for || a.job_title || "—",
+            job_title: a.job_title || "—",
+            status: a.status || "Pending",
+            verified: a.verified ? "Yes" : "No",
+            location: a.location || "—",
+            job_type: a.job_type || "—",
+            skills: Array.isArray(a.skills)
+              ? a.skills
+              : typeof a.skills === "string"
+                ? a.skills.split(",")
+                : [],
+            experience: (() => {
+              try {
+                return JSON.parse(a.experience || "[]");
+              } catch {
+                return [];
+              }
+            })(),
+            bio: a.bio || "",
+            cover_letter: a.cover_letter || "",
+            portfolio_link: a.portfolio_link || "",
+            resume_url: a.resume_url || "",
+            applied_date: a.applied_date || "",
+            social_links: (() => {
+              try {
+                if (Array.isArray(a.social_links)) {
+                  return a.social_links;
+                } else if (typeof a.social_links === 'string' && a.social_links.trim() !== '') {
+                  const parsed = JSON.parse(a.social_links);
+                  return Array.isArray(parsed) ? parsed : (parsed ? [parsed] : []);
+                }
+                return [];
+              } catch {
+                return [];
+              }
+            })(),
+            // Add job_id and student_id for schedule interview
+            job_id: a.job_id || a.jobId || a.applied_job_id || a.job?.job_id || a.job?.id || null,
+            student_id: a.student_id || a.studentId || a.user_id || a.id || a.application_id || null,
+            application_id: a.application_id || null,
+          }));
 
 
         // 🔹 3️⃣ Update States
@@ -511,29 +511,29 @@ const Dashboard = () => {
 
       {/* Metric Cards */}
       <Horizontal4Cards data={metricCardsData} className="mb-5" />
-      
+
       {/* Empty State for Dashboard Stats */}
-      {dataLoaded && 
-       dashboardStats.jobs_posted === 0 && 
-       dashboardStats.applied_job === 0 && 
-       dashboardStats.interview_job === 0 && 
-       dashboardStats.interview_completed === 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-5">
-          <div className="flex items-start">
-            <div className="flex-shrink-0">
-              <FaBriefcase className="h-6 w-6 text-blue-400" />
-            </div>
-            <div className="ml-3 flex-1">
-              <h3 className="text-sm font-medium text-blue-800 mb-1">
-                Welcome to Your Dashboard!
-              </h3>
-              <p className="text-sm text-blue-700">
-                This recruiter account doesn't have any activity yet. Start by posting job openings to see metrics, applications, and interviews appear here.
-              </p>
+      {dataLoaded &&
+        dashboardStats.jobs_posted === 0 &&
+        dashboardStats.applied_job === 0 &&
+        dashboardStats.interview_job === 0 &&
+        dashboardStats.interview_completed === 0 && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-5">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <FaBriefcase className="h-6 w-6 text-blue-400" />
+              </div>
+              <div className="ml-3 flex-1">
+                <h3 className="text-sm font-medium text-blue-800 mb-1">
+                  Welcome to Your Dashboard!
+                </h3>
+                <p className="text-sm text-blue-700">
+                  This recruiter account doesn't have any activity yet. Start by posting job openings to see metrics, applications, and interviews appear here.
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
       {/* Calendar + Charts */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
@@ -573,21 +573,21 @@ const Dashboard = () => {
               {(() => {
                 // ✅ Filter interviews by selected month and year (STRICTLY)
                 // Only show interviews for the currently selected month/year
-                
+
                 console.log('🔍 Filtering interviews:', {
                   totalInterviews: interviewDetails.length,
                   selectedMonth: selectedMonth,
                   selectedYear: selectedYear,
                   selectedDate: selectedDate
                 });
-                
+
                 let filteredInterviews = interviewDetails.filter((item) => {
                   const interviewDate = item.scheduled_at || item.scheduled_date || item.date || item.interview_date
                   if (!interviewDate) {
                     console.log('❌ No interview date found:', item);
                     return false;
                   }
-                  
+
                   try {
                     // Parse date - handle "2025-11-29" format (date only, no time)
                     let date;
@@ -597,7 +597,7 @@ const Dashboard = () => {
                         // Split and create date in local timezone to avoid UTC issues
                         const [year, month, day] = interviewDate.split('-').map(Number);
                         date = new Date(year, month - 1, day); // month is 0-indexed
-                        console.log(`📅 Parsed date "${interviewDate}" -> Year: ${year}, Month: ${month} (0-indexed: ${month-1}), Day: ${day}`);
+                        console.log(`📅 Parsed date "${interviewDate}" -> Year: ${year}, Month: ${month} (0-indexed: ${month - 1}), Day: ${day}`);
                       } else if (interviewDate.includes('T') || interviewDate.includes(' ')) {
                         // Full datetime string
                         date = new Date(interviewDate);
@@ -607,26 +607,26 @@ const Dashboard = () => {
                     } else {
                       date = new Date(interviewDate);
                     }
-                    
+
                     if (isNaN(date.getTime())) {
                       console.log('❌ Invalid date:', interviewDate);
                       return false;
                     }
-                    
+
                     // ✅ STRICTLY filter by month and year
                     const interviewMonth = date.getMonth(); // 0-11 (November = 10)
                     const interviewYear = date.getFullYear();
-                    
+
                     console.log(`📊 Interview: ${interviewDate} -> Month: ${interviewMonth}, Year: ${interviewYear} | Selected: Month: ${selectedMonth}, Year: ${selectedYear}`);
-                    
+
                     // Must match selected month AND year
                     if (interviewMonth !== selectedMonth || interviewYear !== selectedYear) {
                       console.log(`❌ Filtered out: Month mismatch (${interviewMonth} !== ${selectedMonth}) or Year mismatch (${interviewYear} !== ${selectedYear})`);
                       return false;
                     }
-                    
+
                     console.log(`✅ Interview matches selected month/year!`);
-                    
+
                     // If a specific date is selected, also filter by day
                     if (selectedDate && selectedDate > 0) {
                       const dayOfMonth = date.getDate();
@@ -634,7 +634,7 @@ const Dashboard = () => {
                       console.log(`📅 Day filter: ${dayOfMonth} === ${selectedDate}? ${matches}`);
                       return matches;
                     }
-                    
+
                     // If no specific date selected, show all interviews for the selected month
                     return true;
                   } catch (error) {
@@ -642,7 +642,7 @@ const Dashboard = () => {
                     return false;
                   }
                 })
-                
+
                 console.log(`✅ Filtered result: ${filteredInterviews.length} interviews for ${selectedMonth + 1}/${selectedYear}`);
 
                 // Format date helper
@@ -685,10 +685,10 @@ const Dashboard = () => {
 
                 // ✅ Show "No interviews" message if no interviews for selected month
                 if (filteredInterviews.length === 0) {
-                  const monthNames = ["January", "February", "March", "April", "May", "June", 
-                                     "July", "August", "September", "October", "November", "December"];
+                  const monthNames = ["January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December"];
                   const monthName = monthNames[selectedMonth];
-                  
+
                   return (
                     <div className="text-center py-6 sm:py-8 md:py-12 text-gray-500 flex flex-col items-center justify-center">
                       <FaCalendarAlt className="text-3xl sm:text-4xl md:text-5xl mb-3 text-gray-300" />
@@ -696,7 +696,7 @@ const Dashboard = () => {
                         No Interviews Scheduled
                       </p>
                       <p className="text-xs sm:text-sm text-gray-500 max-w-xs">
-                        {dataLoaded 
+                        {dataLoaded
                           ? `No interviews scheduled for ${monthName} ${selectedYear}. Change the month to view interviews for other months.`
                           : "Loading interview data..."
                         }
@@ -710,24 +710,24 @@ const Dashboard = () => {
                     {filteredInterviews.map((item, i) => {
                       // Extract candidate name
                       const candidateName = item.name || item.candidate_name || item.student_name || "—"
-                      
+
                       // Extract job title from various possible fields
                       const jobTitle = item.job_title || item.jobTitle || item.job_name || item.title || "—"
-                      
+
                       // Extract mode from various possible fields
                       const mode = item.mode || item.interview_mode || item.platform_name || "—"
-                      
+
                       // Extract location from various possible fields
                       const location = item.location || item.interview_location || item.address || ""
-                      
+
                       // Format mode with location if offline
-                      const modeDisplay = mode.toLowerCase() === 'offline' && location 
-                        ? `${mode} (${location})` 
+                      const modeDisplay = mode.toLowerCase() === 'offline' && location
+                        ? `${mode} (${location})`
                         : mode
-                      
+
                       // Extract time from various possible fields
                       const time = formatTime(item.time || item.scheduled_time || item.interview_time || item.scheduled_at)
-                      
+
                       // Format time to 12-hour format with am/pm
                       const formatTime12Hour = (timeStr) => {
                         if (!timeStr || timeStr === "—") return "—"
@@ -759,23 +759,23 @@ const Dashboard = () => {
                           <h5 className="text-base font-semibold text-gray-900 mb-4">
                             Candidate Interview Details
                           </h5>
-                          
+
                           <div className="space-y-3">
                             <div>
                               <span className="text-sm font-medium text-gray-700">Name:</span>
                               <span className="text-sm text-gray-900 ml-2">{candidateName}</span>
                             </div>
-                            
+
                             <div>
                               <span className="text-sm font-medium text-gray-700">Job Title:</span>
                               <span className="text-sm text-gray-900 ml-2">{jobTitle}</span>
                             </div>
-                            
+
                             <div>
                               <span className="text-sm font-medium text-gray-700">Mode of Interview:</span>
                               <span className="text-sm text-gray-900 ml-2">{modeDisplay}</span>
                             </div>
-                            
+
                             <div>
                               <span className="text-sm font-medium text-gray-700">Time:</span>
                               <span className="text-sm text-gray-900 ml-2">{formattedTime}</span>
@@ -835,7 +835,7 @@ const Dashboard = () => {
                     No Applicant Data Available
                   </p>
                   <p className="text-xs text-gray-500 max-w-xs text-center">
-                    {dataLoaded 
+                    {dataLoaded
                       ? "This recruiter hasn't received any applications yet. Applications will appear here once candidates start applying to your job postings."
                       : "Loading applicant data..."
                     }
@@ -890,7 +890,7 @@ const Dashboard = () => {
                     No Applicants Yet
                   </p>
                   <p className="text-xs text-gray-500 max-w-md">
-                    {dataLoaded 
+                    {dataLoaded
                       ? "This recruiter doesn't have any applicant data yet. Applicant cards will appear here once candidates apply to your job postings."
                       : "Loading applicant cards..."
                     }
@@ -924,9 +924,9 @@ const Dashboard = () => {
                 Education: ${candidate.education || "—"}
                 Applied For: ${candidate.applied_for || "—"}
                 Skills: ${Array.isArray(candidate.skills)
-                              ? candidate.skills.join(", ")
-                              : candidate.skills || "—"
-                            }
+              ? candidate.skills.join(", ")
+              : candidate.skills || "—"
+            }
                 Experience: ${Array.isArray(candidate.experience)
               ? candidate.experience.join(", ")
               : candidate.experience || "—"
