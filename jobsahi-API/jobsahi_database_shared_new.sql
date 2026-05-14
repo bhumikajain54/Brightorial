@@ -2012,6 +2012,77 @@ ALTER TABLE `subscriptions`
 --
 ALTER TABLE `transactions`
   ADD CONSTRAINT `transactions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `campus_drives`
+--
+
+CREATE TABLE `campus_drives` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `recruiter_id` int(10) UNSIGNED NOT NULL,
+  `institute_id` int(10) UNSIGNED NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` text DEFAULT NULL,
+  `drive_date` date NOT NULL,
+  `location` varchar(255) DEFAULT NULL,
+  `eligibility_criteria` text DEFAULT NULL,
+  `status` enum('upcoming','ongoing','completed','cancelled') DEFAULT 'upcoming',
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `campus_drive_applications`
+--
+
+CREATE TABLE `campus_drive_applications` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `drive_id` int(10) UNSIGNED NOT NULL,
+  `student_id` int(10) UNSIGNED NOT NULL,
+  `status` enum('applied','shortlisted','selected','rejected') DEFAULT 'applied',
+  `current_round` varchar(100) DEFAULT 'Initial Screening',
+  `applied_at` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Indexes for dumped tables
+--
+
+ALTER TABLE `campus_drives`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `recruiter_id` (`recruiter_id`),
+  ADD KEY `institute_id` (`institute_id`);
+
+ALTER TABLE `campus_drive_applications`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `drive_id` (`drive_id`),
+  ADD KEY `student_id` (`student_id`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+ALTER TABLE `campus_drives`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `campus_drive_applications`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- Constraints for dumped tables
+--
+
+ALTER TABLE `campus_drives`
+  ADD CONSTRAINT `campus_drives_ibfk_1` FOREIGN KEY (`recruiter_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `campus_drives_ibfk_2` FOREIGN KEY (`institute_id`) REFERENCES `institute_profiles` (`id`) ON DELETE CASCADE;
+
+ALTER TABLE `campus_drive_applications`
+  ADD CONSTRAINT `campus_drive_applications_ibfk_1` FOREIGN KEY (`drive_id`) REFERENCES `campus_drives` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `campus_drive_applications_ibfk_2` FOREIGN KEY (`student_id`) REFERENCES `student_profiles` (`id`) ON DELETE CASCADE;
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
