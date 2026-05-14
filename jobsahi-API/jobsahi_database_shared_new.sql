@@ -2022,6 +2022,8 @@ CREATE TABLE `campus_drives` (
   `id` int(10) UNSIGNED NOT NULL,
   `recruiter_id` int(10) UNSIGNED NOT NULL,
   `institute_id` int(10) UNSIGNED NOT NULL,
+  `course_id` int(10) UNSIGNED DEFAULT NULL,
+  `job_id` int(10) UNSIGNED DEFAULT NULL,
   `title` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
   `drive_date` date NOT NULL,
@@ -2076,8 +2078,10 @@ ALTER TABLE `campus_drive_applications`
 --
 
 ALTER TABLE `campus_drives`
-  ADD CONSTRAINT `campus_drives_ibfk_1` FOREIGN KEY (`recruiter_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `campus_drives_ibfk_2` FOREIGN KEY (`institute_id`) REFERENCES `institute_profiles` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `fk_drive_recruiter` FOREIGN KEY (`recruiter_id`) REFERENCES `recruiter_profiles` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_drive_institute` FOREIGN KEY (`institute_id`) REFERENCES `institute_profiles` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_drive_course` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_drive_job` FOREIGN KEY (`job_id`) REFERENCES `jobs` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 ALTER TABLE `campus_drive_applications`
   ADD CONSTRAINT `campus_drive_applications_ibfk_1` FOREIGN KEY (`drive_id`) REFERENCES `campus_drives` (`id`) ON DELETE CASCADE,
