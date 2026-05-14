@@ -27,7 +27,7 @@ if (file_exists($envPath)) {
 // ✅ DB creds
 $DB_HOST = $_ENV['DB_HOST'] ?? '127.0.0.1';
 $DB_PORT = $_ENV['DB_PORT'] ?? '3307';
-$DB_NAME = $_ENV['DB_DATABASE'] ?? 'database';
+$DB_NAME = $_ENV['DB_DATABASE'] ?? 'jobsahi_database_shared_new';
 $DB_USER = $_ENV['DB_USERNAME'] ?? 'root';
 $DB_PASS = $_ENV['DB_PASSWORD'] ?? '';
 
