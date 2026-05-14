@@ -4,13 +4,13 @@ $BASE_DIR = dirname(__DIR__);
 
 // Database Configuration
 $dbHost = '127.0.0.1';
-$dbPort = '3306';
-$dbName = 'jobsahi_database_shared_db';
+$dbPort = '3307';
+$dbName = 'jobsahi_database_shared_new';
 $dbUser = 'root';
 $dbPass = '';
 
 // $dbHost = 'localhost'; // Hostinger uses localhost for shared hosting
-// $dbPort = '3306';
+// $dbPort = '3307';
 // $dbName = 'u829931622_jobsahi_db';
 // $dbUser = 'u829931622_jobsahi_db';
 // $dbPass = 'Jobsahi1@';
@@ -30,7 +30,7 @@ try {
     if (!$conn) {
         throw new Exception("MySQLi connection failed: " . mysqli_connect_error());
     }
-    
+
     // ✅ Set timezone to IST (Indian Standard Time) for correct timestamps
     date_default_timezone_set('Asia/Kolkata');
     mysqli_query($conn, "SET time_zone = '+05:30'");
