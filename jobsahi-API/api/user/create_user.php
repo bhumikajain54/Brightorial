@@ -147,9 +147,9 @@ try {
     // Hash password (only if provided)
     $hashed_password = $password !== null ? password_hash($password, PASSWORD_DEFAULT) : null;
 
-    // Insert user (with OAuth fields)
-    $sql = "INSERT INTO users (user_name, email, password, phone_number, role, is_verified, status, google_id, linkedin_id, auth_provider, created_at, last_activity) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
+    // Insert user (without created_at which is missing from users table)
+    $sql = "INSERT INTO users (user_name, email, password, phone_number, role, is_verified, status, google_id, linkedin_id, auth_provider, last_activity) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
 
     $stmt = mysqli_prepare($conn, $sql);
     mysqli_stmt_bind_param($stmt, "sssssissss", $user_name, $email, $hashed_password, $phone_number, $role, $is_verified, $status, $google_id, $linkedin_id, $auth_provider);
@@ -254,6 +254,16 @@ try {
             $cgpa = isset($data['marks_cgpa']) ? (float)$data['marks_cgpa'] : null;
             $profile_photo = handleFileUpload('profile_photo');
 
+            // Initialize extra fields from input or null
+            $certificates = $data['certificates'] ?? null;
+            $job_type = $data['job_type'] ?? 'full_time';
+            $experience = $data['experience'] ?? null;
+            $projects = $data['projects'] ?? null;
+            $languages = $data['languages'] ?? null;
+            $aadhar_number = $data['aadhar_number'] ?? null;
+            $latitude = isset($data['latitude']) ? (float)$data['latitude'] : null;
+            $longitude = isset($data['longitude']) ? (float)$data['longitude'] : null;
+
             $education = null;
             if (isset($data['highest_qualification'])) {
                 $education = $data['highest_qualification'];
@@ -262,7 +272,7 @@ try {
             $profile_sql = "INSERT INTO student_profiles 
                 (user_id, skills, bio, education, resume, certificates, socials, dob, gender, job_type, trade,
                  location, contact_email, contact_phone, experience, projects, languages, aadhar_number,
-                 graduation_year, cgpa, latitude, longitude, created_at, updated_at)
+                 graduation_year, cgpa, latitude, longitude, created_at, modified_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
 
             $profile_stmt = mysqli_prepare($conn, $profile_sql);

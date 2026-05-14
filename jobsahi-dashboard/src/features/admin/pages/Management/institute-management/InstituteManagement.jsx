@@ -7,7 +7,7 @@ import {
   LuBookOpen, 
   LuUsers, 
   LuAward, 
-  // LuMessageSquare 
+  LuMessageSquare 
 } from 'react-icons/lu'
 import PendingInstituteApprovals from './PendingInstitute'
 import CourseMonitoring from './CourseMonitoring'

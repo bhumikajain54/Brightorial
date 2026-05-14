@@ -149,7 +149,7 @@ try {
             if (mysqli_num_rows($profile_result) === 0) {
                 // Create student profile entry for existing user
                 $profile_sql = "INSERT INTO student_profiles 
-                    (user_id, created_at, updated_at)
+                    (user_id, created_at, modified_at)
                     VALUES (?, NOW(), NOW())";
                 $profile_stmt = mysqli_prepare($conn, $profile_sql);
                 mysqli_stmt_bind_param($profile_stmt, "i", $user_id);
@@ -175,8 +175,8 @@ try {
         
         // Check if columns exist before inserting
         if ($hasAuthProvider) {
-            $insert_sql = "INSERT INTO users (user_name, email, password, phone_number, role, is_verified, status, linkedin_id, auth_provider, created_at, last_activity) 
-                           VALUES (?, ?, NULL, ?, ?, ?, 'active', ?, 'linkedin', NOW(), NOW())";
+            $insert_sql = "INSERT INTO users (user_name, email, password, phone_number, role, is_verified, status, linkedin_id, auth_provider, last_activity) 
+                           VALUES (?, ?, NULL, ?, ?, ?, 'active', ?, 'linkedin', NOW())";
             $insert_stmt = mysqli_prepare($conn, $insert_sql);
             mysqli_stmt_bind_param($insert_stmt, "ssssis", $name, $email, $phone_number, $role, $is_verified, $linkedin_id);
         } else {
@@ -190,14 +190,14 @@ try {
             $hasAuthProviderNow = mysqli_num_rows($checkColumnAgain) > 0;
             
             if ($hasAuthProviderNow) {
-                $insert_sql = "INSERT INTO users (user_name, email, password, phone_number, role, is_verified, status, linkedin_id, auth_provider, created_at, last_activity) 
-                               VALUES (?, ?, NULL, ?, ?, ?, 'active', ?, 'linkedin', NOW(), NOW())";
+                $insert_sql = "INSERT INTO users (user_name, email, password, phone_number, role, is_verified, status, linkedin_id, auth_provider, last_activity) 
+                               VALUES (?, ?, NULL, ?, ?, ?, 'active', ?, 'linkedin', NOW())";
                 $insert_stmt = mysqli_prepare($conn, $insert_sql);
                 mysqli_stmt_bind_param($insert_stmt, "ssssis", $name, $email, $phone_number, $role, $is_verified, $linkedin_id);
             } else {
                 // Fallback: insert without OAuth fields
-                $insert_sql = "INSERT INTO users (user_name, email, password, phone_number, role, is_verified, status, created_at, last_activity) 
-                               VALUES (?, ?, NULL, ?, ?, ?, 'active', NOW(), NOW())";
+                $insert_sql = "INSERT INTO users (user_name, email, password, phone_number, role, is_verified, status, last_activity) 
+                               VALUES (?, ?, NULL, ?, ?, ?, 'active', NOW())";
                 $insert_stmt = mysqli_prepare($conn, $insert_sql);
                 mysqli_stmt_bind_param($insert_stmt, "ssssi", $name, $email, $phone_number, $role, $is_verified);
             }
@@ -222,7 +222,7 @@ try {
             if (mysqli_num_rows($profile_result) === 0) {
                 // Create student profile entry
                 $profile_sql = "INSERT INTO student_profiles 
-                    (user_id, created_at, updated_at)
+                    (user_id, created_at, modified_at)
                     VALUES (?, NOW(), NOW())";
                 $profile_stmt = mysqli_prepare($conn, $profile_sql);
                 mysqli_stmt_bind_param($profile_stmt, "i", $user_id);

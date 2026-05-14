@@ -39,9 +39,17 @@ export const getMethod = async (data) => {
       };
     }
 
+    // Skip token for public endpoints
+    const skipToken = data?.apiUrl && (
+      data.apiUrl.includes('jobs') || 
+      data.apiUrl.includes('job-detail') ||
+      data.apiUrl.includes('categories') ||
+      data.apiUrl.includes('skills')
+    );
+
     // Check if token exists for authenticated endpoints
     const token = localStorage.getItem("authToken");
-    if (!token || token === '' || token === 'null' || token === 'undefined') {
+    if (!skipToken && (!token || token === '' || token === 'null' || token === 'undefined')) {
       console.error('❌ GET Error: No authentication token found. Please login again.');
       return {
         status: false,
@@ -140,8 +148,13 @@ export const getMethod = async (data) => {
  */
 export const postMethod = async (data) => {
   try {
-    // Skip token for signup, create_user, and profile creation endpoints
+    // Skip token for auth-related and profile creation endpoints
     const skipToken = data?.apiUrl && (
+      data.apiUrl.includes('login') || 
+      data.apiUrl.includes('phone_login') || 
+      data.apiUrl.includes('forgot-password') || 
+      data.apiUrl.includes('verify-otp') || 
+      data.apiUrl.includes('resend-otp') || 
       data.apiUrl.includes('signup') || 
       data.apiUrl.includes('create_user') ||
       data.apiUrl.includes('create_recruiter_profile') ||

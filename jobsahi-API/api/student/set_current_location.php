@@ -245,13 +245,13 @@ try {
         // Record exists - UPDATE
         if ($resolved_location !== null && $resolved_location !== '') {
             $update_sql = "UPDATE student_profiles 
-                          SET latitude = ?, longitude = ?, location = ?,  updated_at = NOW() 
+                          SET latitude = ?, longitude = ?, location = ?,  modified_at = NOW() 
                           WHERE user_id = ? AND deleted_at IS NULL";
             $update_stmt = mysqli_prepare($conn, $update_sql);
             mysqli_stmt_bind_param($update_stmt, "ddsi", $latitude, $longitude, $resolved_location, $user_id);
         } else {
             $update_sql = "UPDATE student_profiles 
-                          SET latitude = ?, longitude = ?,  updated_at = NOW() 
+                          SET latitude = ?, longitude = ?,  modified_at = NOW() 
                           WHERE user_id = ? AND deleted_at IS NULL";
             $update_stmt = mysqli_prepare($conn, $update_sql);
             mysqli_stmt_bind_param($update_stmt, "ddi", $latitude, $longitude, $user_id);
@@ -287,12 +287,12 @@ try {
     } else {
         // Record doesn't exist - INSERT
         if ($resolved_location !== null && $resolved_location !== '') {
-            $insert_sql = "INSERT INTO student_profiles (user_id, latitude, longitude, location, created_at,  updated_at) 
+            $insert_sql = "INSERT INTO student_profiles (user_id, latitude, longitude, location, created_at,  modified_at) 
                           VALUES (?, ?, ?, ?, NOW(), NOW())";
             $insert_stmt = mysqli_prepare($conn, $insert_sql);
             mysqli_stmt_bind_param($insert_stmt, "idds", $user_id, $latitude, $longitude, $resolved_location);
         } else {
-            $insert_sql = "INSERT INTO student_profiles (user_id, latitude, longitude, created_at,  updated_at) 
+            $insert_sql = "INSERT INTO student_profiles (user_id, latitude, longitude, created_at,  modified_at) 
                           VALUES (?, ?, ?, NOW(), NOW())";
             $insert_stmt = mysqli_prepare($conn, $insert_sql);
             mysqli_stmt_bind_param($insert_stmt, "idd", $user_id, $latitude, $longitude);
