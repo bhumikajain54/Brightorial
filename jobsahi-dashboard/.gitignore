@@ -21,3 +21,4 @@ pnpm-debug.log*
 _metadata.json
 
 # Note: package.json and package-lock.json should be committed to version control
+node_modules
