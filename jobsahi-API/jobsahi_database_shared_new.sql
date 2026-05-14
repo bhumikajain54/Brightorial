@@ -265,15 +265,15 @@ CREATE TABLE `courses` (
 INSERT INTO `courses` (`id`, `institute_id`, `title`, `description`, `duration`, `category_id`, `tagged_skills`, `batch_limit`, `status`, `instructor_name`, `mode`, `certification_allowed`, `module_title`, `module_description`, `media`, `created_at`, `updated_at`, `fee`, `admin_action`) VALUES
 (1, 1, 'Java Enterprise Development', 'Updated advanced Java programming with Spring Boot', '6 months', NULL, NULL, NULL, 'active', NULL, 'offline', 0, NULL, NULL, NULL, '2025-10-22 15:37:30', '2025-10-22 15:37:30', 42000.00, 'approved'),
 (2, 1, 'Data Science with Python', 'Comprehensive data science course including Python, pandas, scikit-learn, and machine learning', '4 months', NULL, NULL, NULL, 'active', NULL, 'offline', 0, NULL, NULL, NULL, '2025-10-22 15:37:30', '2025-10-22 15:37:30', 35000.00, 'approved'),
-(3, 0, 'Java Enterprise Development', 'Updated advanced Java programming with Spring Boot', '6 months', NULL, NULL, NULL, 'active', NULL, 'offline', 0, NULL, NULL, NULL, '2025-10-22 15:37:30', '2025-10-22 18:44:01', 42000.00, 'approved'),
-(4, 0, 'Cloud Computing with AWS', 'Learn AWS services, deployment, and cloud architecture', '3 months', NULL, NULL, NULL, 'active', NULL, 'offline', 0, NULL, NULL, NULL, '2025-10-22 15:37:30', '2025-10-22 18:44:01', 30000.00, 'approved'),
-(5, 0, 'React Native Mobile Development', 'Build cross-platform mobile apps using React Native', '4 months', NULL, NULL, NULL, 'active', NULL, 'offline', 0, NULL, NULL, NULL, '2025-10-22 15:37:30', '2025-10-22 18:44:01', 38000.00, 'pending'),
-(6, 0, 'DevOps Engineering', 'Complete DevOps pipeline including Docker, Kubernetes, and CI/CD', '5 months', NULL, NULL, NULL, 'active', NULL, 'offline', 0, NULL, NULL, NULL, '2025-10-22 15:37:30', '2025-10-22 18:44:01', 42000.00, 'pending'),
-(7, 0, 'Full Stack Development', 'Learn React, Node, and PHP', '6 months', NULL, NULL, NULL, 'active', NULL, 'offline', 0, NULL, NULL, NULL, '2025-10-22 15:37:30', '2025-10-22 18:44:01', 12000.00, 'pending'),
-(9, 0, 'Full Stack Development', 'Learn React, Node, and PHP', '6 months', NULL, NULL, NULL, 'active', NULL, 'offline', 0, NULL, NULL, NULL, '2025-10-22 15:37:30', '2025-10-22 18:44:01', 12000.00, 'pending'),
-(10, 0, 'Full Stack Development', 'Learn React, Node, and PHP', '6 months', NULL, NULL, NULL, 'active', NULL, 'offline', 0, NULL, NULL, NULL, '2025-10-22 15:37:30', '2025-10-22 18:44:01', 12000.00, 'approved'),
-(11, 0, 'Full Stack Development Using Java', 'Learn React, Node, and Java', '6 months', NULL, NULL, NULL, 'active', NULL, 'offline', 0, NULL, NULL, NULL, '2025-10-22 15:37:30', '2025-10-22 18:44:01', 12000.00, 'approved'),
-(13, 0, 'Full Stack Web Development', 'Learn frontend and backend development using React and Spring Boot.', '6', 3, '0', 30, 'active', 'John Doe', 'offline', 1, 'Introduction to Web Development', 'Basics of HTML, CSS, and JavaScript.', 'https://example.com/course-banner.jpg', '2025-10-22 18:02:58', '2025-10-22 18:44:01', 4999.99, 'pending');
+(3, 1, 'Java Enterprise Development', 'Updated advanced Java programming with Spring Boot', '6 months', NULL, NULL, NULL, 'active', NULL, 'offline', 0, NULL, NULL, NULL, '2025-10-22 15:37:30', '2025-10-22 18:44:01', 42000.00, 'approved'),
+(4, 1, 'Cloud Computing with AWS', 'Learn AWS services, deployment, and cloud architecture', '3 months', NULL, NULL, NULL, 'active', NULL, 'offline', 0, NULL, NULL, NULL, '2025-10-22 15:37:30', '2025-10-22 18:44:01', 30000.00, 'approved'),
+(5, 1, 'React Native Mobile Development', 'Build cross-platform mobile apps using React Native', '4 months', NULL, NULL, NULL, 'active', NULL, 'offline', 0, NULL, NULL, NULL, '2025-10-22 15:37:30', '2025-10-22 18:44:01', 38000.00, 'pending'),
+(6, 1, 'DevOps Engineering', 'Complete DevOps pipeline including Docker, Kubernetes, and CI/CD', '5 months', NULL, NULL, NULL, 'active', NULL, 'offline', 0, NULL, NULL, NULL, '2025-10-22 15:37:30', '2025-10-22 18:44:01', 42000.00, 'pending'),
+(7, 1, 'Full Stack Development', 'Learn React, Node, and PHP', '6 months', NULL, NULL, NULL, 'active', NULL, 'offline', 0, NULL, NULL, NULL, '2025-10-22 15:37:30', '2025-10-22 18:44:01', 12000.00, 'pending'),
+(9, 1, 'Full Stack Development', 'Learn React, Node, and PHP', '6 months', NULL, NULL, NULL, 'active', NULL, 'offline', 0, NULL, NULL, NULL, '2025-10-22 15:37:30', '2025-10-22 18:44:01', 12000.00, 'pending'),
+(10, 1, 'Full Stack Development', 'Learn React, Node, and PHP', '6 months', NULL, NULL, NULL, 'active', NULL, 'offline', 0, NULL, NULL, NULL, '2025-10-22 15:37:30', '2025-10-22 18:44:01', 12000.00, 'approved'),
+(11, 1, 'Full Stack Development Using Java', 'Learn React, Node, and Java', '6 months', NULL, NULL, NULL, 'active', NULL, 'offline', 0, NULL, NULL, NULL, '2025-10-22 15:37:30', '2025-10-22 18:44:01', 12000.00, 'approved'),
+(13, 1, 'Full Stack Web Development', 'Learn frontend and backend development using React and Spring Boot.', '6', 3, '0', 30, 'active', 'John Doe', 'offline', 1, 'Introduction to Web Development', 'Basics of HTML, CSS, and JavaScript.', 'https://example.com/course-banner.jpg', '2025-10-22 18:02:58', '2025-10-22 18:44:01', 4999.99, 'pending');
 
 -- --------------------------------------------------------
 
@@ -715,7 +715,7 @@ INSERT INTO `notifications` (`id`, `user_id`, `receiver_id`, `message`, `type`, 
 (1, 49, NULL, 'System maintenance at 10 PM tonight', 'system', 0, '2025-09-30 16:39:11', NULL),
 (2, 50, NULL, 'New college event: AI Workshop on 5th Oct!', 'general', 1, '2025-09-30 16:43:19', NULL),
 (3, 49, NULL, 'New college event: AI Workshop on 5th Oct!', 'general', 0, '2025-10-01 17:26:56', NULL),
-(4, 0, 49, 'Candidate Mike Johnson has been shortlisted for Frontend Developer role', 'general', 0, '2025-10-01 22:19:49', 'recruiter');
+(4, 6, 49, 'Candidate Mike Johnson has been shortlisted for Frontend Developer role', 'general', 0, '2025-10-01 22:19:49', 'recruiter');
 
 -- --------------------------------------------------------
 
