@@ -56,7 +56,7 @@ $select_fields .= ", sp.socials,
                 sp.graduation_year,
                 sp.cgpa,
                 sp.created_at, 
-                sp.updated_at, 
+                sp.modified_at, 
                 sp.deleted_at";
 
 // ✅ Build SQL based on role
@@ -392,7 +392,7 @@ if ($result && mysqli_num_rows($result) > 0) {
             ],
             "status" => [
                 "created_at" => $student['created_at'],
-                "modified_at" => $student['updated_at'],
+                "modified_at" => $student['modified_at'],
                 "deleted_at" => $student['deleted_at']
             ]
         ];

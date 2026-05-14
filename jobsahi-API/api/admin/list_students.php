@@ -141,7 +141,7 @@ $stmt->close();
             sp.graduation_year,
             sp.cgpa,
             sp.created_at AS profile_created_at,
-            sp.updated_at AS profile_modified_at,
+            sp.modified_at AS profile_modified_at,
             sp.deleted_at AS profile_deleted_at
         FROM users u
         LEFT JOIN student_profiles sp ON u.id = sp.user_id

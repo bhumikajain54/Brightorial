@@ -763,6 +763,170 @@ const handleUpdateInterview = async () => {
   }
 };
 
+// =========================================================
+// 5.5) CANDIDATE SELECTION & REJECTION
+// =========================================================
+
+const handleSelectCandidate = async (intv) => {
+  if (!intv.application_id) {
+    return Swal.fire("❌ Error", "Application ID missing for this candidate.", "error");
+  }
+  
+  const result = await Swal.fire({
+    title: "Confirm Hiring",
+    text: `Are you sure you want to mark ${intv.candidate.name} as Selected/Hired?`,
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#10b981",
+    cancelButtonColor: "#6b7280",
+    confirmButtonText: "Yes, Hire",
+    cancelButtonText: "Cancel",
+  });
+
+  if (result.isConfirmed) {
+    setLoadingAction(true);
+    try {
+      const res = await postMethod({
+        apiUrl: apiService.updateApplicationStatus,
+        payload: {
+          application_id: intv.application_id,
+          status: "Selected",
+        },
+      });
+
+      if (res?.status === true || res?.status === "success") {
+        Swal.fire({
+          title: "✅ Success",
+          text: "Candidate has been marked as Selected.",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        fetchScheduledInterviews(); // Refresh the list
+      } else {
+        Swal.fire("❌ Failed", res?.message || "Failed to update status.", "error");
+      }
+    } catch (err) {
+      console.error("❌ Error updating status:", err);
+      Swal.fire("⚠️ Error", "An error occurred while updating candidate status.", "error");
+    } finally {
+      setLoadingAction(false);
+    }
+  }
+};
+
+const handleRejectCandidate = async (intv) => {
+  if (!intv.application_id) {
+    return Swal.fire("❌ Error", "Application ID missing for this candidate.", "error");
+  }
+  
+  const result = await Swal.fire({
+    title: "Confirm Rejection",
+    text: `Are you sure you want to reject ${intv.candidate.name}?`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#ef4444",
+    cancelButtonColor: "#6b7280",
+    confirmButtonText: "Yes, Reject",
+    cancelButtonText: "Cancel",
+  });
+
+  if (result.isConfirmed) {
+    setLoadingAction(true);
+    try {
+      const res = await postMethod({
+        apiUrl: apiService.updateApplicationStatus,
+        payload: {
+          application_id: intv.application_id,
+          status: "Rejected",
+        },
+      });
+
+      if (res?.status === true || res?.status === "success") {
+        Swal.fire({
+          title: "✅ Success",
+          text: "Candidate has been marked as Rejected.",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        fetchScheduledInterviews(); // Refresh the list
+      } else {
+        Swal.fire("❌ Failed", res?.message || "Failed to update status.", "error");
+      }
+    } catch (err) {
+      console.error("❌ Error updating status:", err);
+      Swal.fire("⚠️ Error", "An error occurred while updating candidate status.", "error");
+    } finally {
+      setLoadingAction(false);
+    }
+  }
+};
+
+const handleBulkShortlist = async () => {
+  if (selectedCandidates.length === 0) return;
+
+  const result = await Swal.fire({
+    title: "Bulk Hire Confirmation",
+    text: `Are you sure you want to hire the ${selectedCandidates.length} selected candidates?`,
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#10b981",
+    cancelButtonColor: "#6b7280",
+    confirmButtonText: "Yes, Hire All",
+    cancelButtonText: "Cancel",
+  });
+
+  if (result.isConfirmed) {
+    setLoadingAction(true);
+    try {
+      // Find the application_ids for all selected interviews
+      const applicationIds = scheduledInterviews
+        .filter((intv) => selectedCandidates.includes(intv.id))
+        .map((intv) => intv.application_id)
+        .filter(Boolean);
+
+      if (applicationIds.length === 0) {
+        setLoadingAction(false);
+        return Swal.fire("❌ Error", "No valid application IDs found for selected candidates.", "error");
+      }
+
+      // Call API for each selected candidate (Sequentially to avoid potential race conditions if backend isn't optimized for bulk)
+      let successCount = 0;
+      for (const appId of applicationIds) {
+        try {
+          const res = await postMethod({
+            apiUrl: apiService.updateApplicationStatus,
+            payload: {
+              application_id: appId,
+              status: "Selected",
+            },
+          });
+          if (res?.status === true || res?.status === "success") {
+            successCount++;
+          }
+        } catch (err) {
+          console.error(`❌ Error updating application ${appId}:`, err);
+        }
+      }
+
+      Swal.fire({
+        title: "✅ Process Completed",
+        text: `${successCount} candidates out of ${applicationIds.length} were successfully hired.`,
+        icon: "success",
+      });
+      
+      setSelectedCandidates([]);
+      fetchScheduledInterviews(); // Refresh the list
+    } catch (err) {
+      console.error("❌ Bulk update error:", err);
+      Swal.fire("⚠️ Error", "Something went wrong during bulk processing.", "error");
+    } finally {
+      setLoadingAction(false);
+    }
+  }
+};
+
 
   // =========================================================
   // 6) RENDER

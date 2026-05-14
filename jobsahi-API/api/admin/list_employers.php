@@ -72,7 +72,7 @@ try {
         FROM users u
         LEFT JOIN recruiter_profiles rp ON u.id = rp.user_id
         WHERE u.role = 'recruiter'
-        ORDER BY u.created_at DESC
+        ORDER BY u.id DESC
     ";
 
     $stmt = $conn->prepare($query);

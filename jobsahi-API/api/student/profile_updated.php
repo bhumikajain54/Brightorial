@@ -318,8 +318,8 @@ if ($location !== null) { $update_fields[] = "location = ?"; $update_params[] = 
 if ($contact_email !== null) { $update_fields[] = "contact_email = ?"; $update_params[] = $contact_email; $update_types .= "s"; }
 if ($contact_phone !== null) { $update_fields[] = "contact_phone = ?"; $update_params[] = $contact_phone; $update_types .= "s"; }
 
-// Always update updated_at
-$update_fields[] = "updated_at = NOW()";
+// Always update modified_at
+$update_fields[] = "modified_at = NOW()";
 
 if (empty($update_fields)) {
     $update_success = false;
