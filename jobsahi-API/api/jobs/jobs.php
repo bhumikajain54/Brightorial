@@ -82,7 +82,6 @@ if ($job_id > 0) {
             j.is_remote,
             j.no_of_vacancies,
             j.status,
-            j.is_featured,
             j.created_at,
             j.updated_at,
             COALESCE(j.admin_action, 'pending') AS admin_action,
@@ -236,10 +235,6 @@ if (!empty($_GET['is_remote'])) {
     $types .= "i";
 }
 
-// Featured
-if (isset($_GET['featured']) && $_GET['featured'] === 'true') {
-    $filters[] = "j.is_featured = 1";
-}
 
 
 // 🔥 Main Listing Query
@@ -259,7 +254,6 @@ $sql = "
         j.is_remote,
         j.no_of_vacancies,
         j.status,
-        j.is_featured,
         j.created_at,
         j.updated_at,
         COALESCE(j.admin_action, 'pending') AS admin_action,

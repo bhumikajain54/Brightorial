@@ -1,6 +1,6 @@
 <?php 
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
 
 // $BASE_DIR = dirname(__DIR__);
 // require_once $BASE_DIR . "/vendor/autoload.php";
@@ -15,11 +15,22 @@ $strictAllowed[] = 'http://localhost';
 $strictAllowed[] = 'http://127.0.0.1';
 $strictAllowed[] = 'https://localhost';
 $strictAllowed[] = 'https://127.0.0.1';
-$origin = $_SERVER['HTTP_ORIGIN'] ?? $_SERVER['HTTP_REFERER'] ?? '';
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+// If Origin header is missing, try to extract it from Referer (useful for some dev environments)
+if (empty($origin) && !empty($_SERVER['HTTP_REFERER'])) {
+    $parsed_url = parse_url($_SERVER['HTTP_REFERER']);
+    if (isset($parsed_url['scheme']) && isset($parsed_url['host'])) {
+        $origin = $parsed_url['scheme'] . '://' . $parsed_url['host'];
+        if (isset($parsed_url['port'])) {
+            $origin .= ':' . $parsed_url['port'];
+        }
+    }
+}
+
 $allow = false;
 
 // Allow any localhost / 127.0.0.1 (any port) for dev
-// More flexible regex to match localhost with any port (including Flutter Web ports)
 if (preg_match('#^https?://localhost(:\d+)?#', $origin)) {
   $allow = true;
 } elseif (preg_match('#^https?://127\.0\.0\.1(:\d+)?#', $origin)) {
@@ -41,27 +52,23 @@ if (!$allow && empty($origin)) {
 }
 
 // Set CORS headers
-if ($allow) {
-  if ($origin === '*') {
-    header("Access-Control-Allow-Origin: *");
-  } else {
+if ($allow && !empty($origin) && $origin !== '*') {
     header("Access-Control-Allow-Origin: $origin");
+    header("Access-Control-Allow-Credentials: true");
     header("Vary: Origin");
-  }
 } else {
-  // For development, allow all origins (comment out in production)
-  header("Access-Control-Allow-Origin: *");
-  // Uncomment to hard-block unknown origins in prod
-  // http_response_code(403);
-  // echo json_encode(["status"=>false,"message"=>"Origin not allowed"]);
-  // exit;
+    header("Access-Control-Allow-Origin: *");
+    header("Access-Control-Allow-Credentials: false");
 }
 
-// Enhanced CORS headers for Flutter Web
-header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers");
+// Dynamically allow requested headers
+if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS'])) {
+    header("Access-Control-Allow-Headers: {$_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']}");
+} else {
+    header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers");
+}
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE");
 header("Access-Control-Max-Age: 86400"); // cache preflight 24h
-header("Access-Control-Allow-Credentials: true"); // For future authentication
 header("Access-Control-Expose-Headers: Content-Length, X-JSON"); // Expose additional headers
 
 // Additional security headers

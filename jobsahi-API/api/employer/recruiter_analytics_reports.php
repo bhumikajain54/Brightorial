@@ -13,8 +13,21 @@ try {
     // --------------------------------------------------------------------
     // 🔹 Step 1: Get recruiter_id from recruiter_profiles (via user_id)
     // --------------------------------------------------------------------
+    $target_user_id = $user_id;
+    $role = strtolower($decoded['role'] ?? '');
+
+    if ($role === 'admin') {
+        $impersonated_user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : 
+                               (isset($_GET['recruiter_id']) ? intval($_GET['recruiter_id']) : 
+                               (isset($_GET['uid']) ? intval($_GET['uid']) : null));
+        
+        if ($impersonated_user_id) {
+            $target_user_id = $impersonated_user_id;
+        }
+    }
+
     $stmt = $conn->prepare("SELECT id FROM recruiter_profiles WHERE user_id = ? LIMIT 1");
-    $stmt->bind_param("i", $user_id);
+    $stmt->bind_param("i", $target_user_id);
     $stmt->execute();
     $recruiter = $stmt->get_result()->fetch_assoc();
     $stmt->close();

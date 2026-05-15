@@ -3,7 +3,7 @@ require_once '../cors.php';
 require_once '../db.php';
 
 // ✅ Authenticate recruiter
-$decoded = authenticateJWT(['recruiter','admin']);
+$decoded = authenticateJWT(['recruiter', 'admin']);
 $role = strtolower($decoded['role'] ?? '');
 $user_id = $decoded['user_id'] ?? null;
 
@@ -14,10 +14,10 @@ if (!$user_id) {
 }
 if ($role === 'admin') {
     // Admin impersonation - GET params se recruiter_id lo
-    $impersonated_user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : 
-                           (isset($_GET['recruiter_id']) ? intval($_GET['recruiter_id']) : 
-                           (isset($_GET['uid']) ? intval($_GET['uid']) : null));
-    
+    $impersonated_user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) :
+        (isset($_GET['recruiter_id']) ? intval($_GET['recruiter_id']) :
+            (isset($_GET['uid']) ? intval($_GET['uid']) : null));
+
     if ($impersonated_user_id) {
         $user_id = $impersonated_user_id; // Admin ke liye recruiter ka user_id use karo
     } else {
@@ -60,7 +60,8 @@ try {
             i.mode AS interview_mode,
             i.location AS interview_location,
             DATE_FORMAT(i.scheduled_at, '%h:%i %p') AS interview_time,
-            DATE(i.scheduled_at) AS interview_date
+            DATE(i.scheduled_at) AS interview_date,
+            i.scheduled_at AS raw_scheduled_at
         FROM interviews i
         INNER JOIN applications a ON a.id = i.application_id
         INNER JOIN jobs j ON j.id = a.job_id
@@ -73,7 +74,7 @@ try {
     // Add month filter if provided
     $params = [$recruiter_profile_id];
     $types = "i";
-    
+
     if ($month !== null && $month >= 1 && $month <= 12) {
         if ($year !== null && $year > 0) {
             $sql .= " AND YEAR(i.scheduled_at) = ? AND MONTH(i.scheduled_at) = ?";
@@ -93,7 +94,7 @@ try {
     if (!$stmt) {
         throw new Exception("Database prepare error: " . $conn->error);
     }
-    
+
     $stmt->bind_param($types, ...$params);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -107,7 +108,8 @@ try {
             "mode" => ucfirst($row['interview_mode']),
             "location" => $row['interview_location'] ?? "",
             "time" => $row['interview_time'],
-            "scheduled_at" => $row['interview_date']
+            "scheduled_at" => $row['interview_date'],
+            "full_scheduled_at" => $row['raw_scheduled_at']
         ];
     }
 

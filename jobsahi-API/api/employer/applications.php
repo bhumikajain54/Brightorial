@@ -10,6 +10,15 @@ try {
     $decoded = authenticateJWT(['recruiter', 'admin']);
     $role = strtolower($decoded['role'] ?? '');
     $user_id = intval($decoded['user_id'] ?? 0);
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
+    $host = $_SERVER['HTTP_HOST'];
+    
+    // Get the base directory dynamically
+    $script_path = str_replace('\\', '/', dirname($_SERVER['PHP_SELF']));
+    $base_dir = rtrim(explode('/api/', $script_path)[0], '/');
+
+    $profile_image_folder = $base_dir . "/api/uploads/profile_images/";
+    $resume_folder = $base_dir . "/api/uploads/resume/";
 
     // ✅ Get recruiter_id
     $recruiter_id = 0;
@@ -97,6 +106,7 @@ try {
             u.email AS candidate_email,
             u.phone_number AS candidate_phone,
             u.is_verified,
+            s.profile_image,
             s.skills,
             s.location AS candidate_location,
             s.experience AS experience_years,
@@ -128,6 +138,24 @@ try {
             $skills = is_array($decoded) ? $decoded : explode(',', $row['skills']);
         }
 
+        // ✅ Build profile_image URL (R2 support)
+        $profile_image_url = null;
+        if (!empty($row['profile_image'])) {
+            if (strpos($row['profile_image'], 'http') === 0 && 
+                (strpos($row['profile_image'], 'r2.dev') !== false || 
+                 strpos($row['profile_image'], 'r2.cloudflarestorage.com') !== false)) {
+                $profile_image_url = $row['profile_image'];
+            } else {
+                $clean_img = str_replace(["\\", "/uploads/profile_images/", "./", "../"], "", $row['profile_image']);
+                $img_local = __DIR__ . '/../uploads/profile_images/' . $clean_img;
+                if (file_exists($img_local)) {
+                    $profile_image_url = $protocol . $host . $profile_image_folder . $clean_img;
+                } else {
+                    $profile_image_url = $protocol . $host . $profile_image_folder . basename($row['profile_image']);
+                }
+            }
+        }
+
         $candidates[] = [
             "application_id" => intval($row['application_id']),
             "status" => $row['application_status'],
@@ -135,6 +163,7 @@ try {
             "email" => $row['candidate_email'],
             "phone" => $row['candidate_phone'],
             "verified" => (bool)$row['is_verified'],
+            "profile_image" => $profile_image_url,
             "location" => $row['candidate_location'] ?: $row['job_location'],
             "experience" => $row['experience_years'] ?: "N/A",
             "job_title" => $row['job_title'],

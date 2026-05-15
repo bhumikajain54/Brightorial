@@ -47,7 +47,7 @@ $scheduled_at = isset($data['scheduled_at']) ? $data['scheduled_at'] : '';
 $mode = isset($data['mode']) ? $data['mode'] : 'online'; // online, offline, phone
 $location = isset($data['location']) ? $data['location'] : '';
 $status = isset($data['status']) ? $data['status'] : 'scheduled';
-$feedback = isset($data['feedback']) ? $data['feedback'] : '';
+$interview_info = isset($data['interview_info']) ? $data['interview_info'] : (isset($data['feedback']) ? $data['feedback'] : '');
 
 // Validate required fields
 if (empty($scheduled_at)) {
@@ -62,12 +62,12 @@ try {
     // Role-based visibility query for admin_action
     if ($user_role === 'admin') {
         // Admin sees all, including 'pending'
-        $check_sql = "SELECT * FROM interviews WHERE id = ? AND (admin_action = 'pending' OR admin_action = 'approval')";
+        $check_sql = "SELECT * FROM interviews WHERE id = ? AND (admin_action = 'pending' OR admin_action = 'approval' OR admin_action = 'approved')";
         $check_stmt = $conn->prepare($check_sql);
         $check_stmt->bind_param("i", $interview_id);
     } else {
         // Non-admin (recruiter, institute, student) sees only approved interviews
-        $check_sql = "SELECT * FROM interviews WHERE id = ? AND admin_action = 'approval'";
+        $check_sql = "SELECT * FROM interviews WHERE id = ? AND admin_action = 'approved'";
         $check_stmt = $conn->prepare($check_sql);
         $check_stmt->bind_param("i", $interview_id);
     }
@@ -104,9 +104,9 @@ try {
 
     // Update interview record
     $stmt = $conn->prepare("UPDATE interviews 
-                            SET scheduled_at = ?, mode = ?, location = ?, status = ?, feedback = ?, modified_at = NOW()
+                            SET scheduled_at = ?, mode = ?, location = ?, status = ?, interview_info = ?, modified_at = NOW()
                             WHERE id = ?");
-    $stmt->bind_param("sssssi", $scheduled_at, $mode, $location, $status, $feedback, $interview_id);
+    $stmt->bind_param("sssssi", $scheduled_at, $mode, $location, $status, $interview_info, $interview_id);
     
     if ($stmt->execute()) {
         if ($stmt->affected_rows > 0) {

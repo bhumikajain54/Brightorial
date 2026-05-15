@@ -2,7 +2,7 @@
 // get_job_course_dashboard_stats.php
 // 🔹 Combined dashboard metrics for Admin (Jobs + Courses + Institutes)
 require_once '../cors.php';
-require_once '../db.php';
+error_log("Dashboard Stats: Script initiated");
 
 // ✅ Allow only admin users
 $decoded = authenticateJWT(['admin']);
@@ -13,6 +13,7 @@ try {
     // 🧭 JOB CONTROL SECTION
     // ----------------------------------------------------------------------
 
+    error_log("Dashboard Stats: Starting job section");
     // Total Jobs
     $sql_total_jobs = "SELECT COUNT(*) AS total_jobs FROM jobs WHERE admin_action != 'rejected'";
     $total_jobs = $conn->query($sql_total_jobs)->fetch_assoc()['total_jobs'] ?? 0;
@@ -26,10 +27,9 @@ try {
     $flagged_jobs = $conn->query($sql_flagged_jobs)->fetch_assoc()['flagged_jobs'] ?? 0;
 
     // Promoted Jobs
-    $sql_promoted_jobs = "SELECT COUNT(*) AS promoted_jobs FROM jobs WHERE is_featured = 1";
-    $promoted_jobs = $conn->query($sql_promoted_jobs)->fetch_assoc()['promoted_jobs'] ?? 0;
+    $promoted_jobs = 0;
 
-
+    error_log("Dashboard Stats: Starting course section");
     // ----------------------------------------------------------------------
     // 🎓 COURSE CONTROL SECTION
     // ----------------------------------------------------------------------
@@ -49,6 +49,8 @@ try {
     // ✅ Total Institutes (all statuses)
     $sql_total_institutes = "SELECT COUNT(*) AS total_institutes FROM institute_profiles";
     $total_institutes = $conn->query($sql_total_institutes)->fetch_assoc()['total_institutes'] ?? 0;
+
+    error_log("Dashboard Stats: Finished all queries");
 
 
     // ----------------------------------------------------------------------

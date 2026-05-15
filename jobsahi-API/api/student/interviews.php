@@ -32,7 +32,7 @@ $limit  = isset($_GET['limit'])  ? intval($_GET['limit']) : 50;
 $offset = isset($_GET['offset']) ? intval($_GET['offset']) : 0;
 
 // ---- Build Dynamic SQL ----
-$sql = "SELECT id, application_id, scheduled_at, mode, location, status, feedback, 
+$sql = "SELECT id, application_id, scheduled_at, mode, location, status, interview_info, 
                created_at, modified_at, deleted_at, admin_action
         FROM interviews 
         WHERE 1=1"; 

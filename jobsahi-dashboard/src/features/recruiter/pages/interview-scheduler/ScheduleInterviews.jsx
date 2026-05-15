@@ -100,9 +100,11 @@ const ScheduleInterviews = () => {
           res.all_applicants.data.forEach((item) => {
             const appId = String(item.application_id || item.applicationId || '');
             
-            // Only include applications that have scheduled interviews
-            if (!scheduledApplicationIds.has(appId)) {
-              return; // Skip applications without scheduled interviews
+            // ✅ In a "Schedule New" form, we usually want to see candidates 
+            // who are Shortlisted but NOT yet scheduled, OR just all eligible applicants.
+            // For now, let's show all applicants that ARE NOT already scheduled.
+            if (scheduledApplicationIds.has(appId)) {
+              return; // Skip applications that already have an interview
             }
             
             // ✅ Use student_id as unique key to prevent duplicates

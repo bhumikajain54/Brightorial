@@ -44,7 +44,7 @@ const Dashboard = () => {
   const [tradesData, setTradesData] = useState({ labels: [], datasets: [] });
   const [applicantCards, setApplicantCards] = useState([]);
   const [weekRange, setWeekRange] = useState("");
-  const [selectedDate, setSelectedDate] = useState(10);
+  const [selectedDate, setSelectedDate] = useState(0); // 0 means show all for the month
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth()); // Current month (0-11)
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear()); // Current year
   const [recruiterName, setRecruiterName] = useState("");
@@ -200,8 +200,10 @@ const Dashboard = () => {
         }
 
         setInterviewDetails(dataArr);
+        console.log("📥 API Response (Interviews):", res);
+        console.log("✅ Set InterviewDetails state with:", dataArr);
 
-        // ✅ Extract dates for calendar highlighting (all months, not just current)
+        // ✅ Extract dates for calendar highlighting (full dates to avoid highlighting same day in every month)
         const dates = dataArr
           .map((item) => {
             const interviewDate = item.scheduled_at || item.scheduled_date || item.date || item.interview_date;
@@ -209,17 +211,24 @@ const Dashboard = () => {
 
             try {
               let date;
-              // Handle "YYYY-MM-DD" format
-              if (typeof interviewDate === 'string' && interviewDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                const [year, month, day] = interviewDate.split('-').map(Number);
+              // Handle "YYYY-MM-DD" format or full datetime
+              const datePart = typeof interviewDate === 'string' ? interviewDate.split(' ')[0] : '';
+              
+              if (datePart.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                const [year, month, day] = datePart.split('-').map(Number);
                 date = new Date(year, month - 1, day);
               } else {
                 date = new Date(interviewDate);
               }
 
               if (isNaN(date.getTime())) return null;
-              return date.getDate();
-            } catch {
+              
+              // Return YYYY-MM-DD format
+              const y = date.getFullYear();
+              const m = String(date.getMonth() + 1).padStart(2, '0');
+              const d = String(date.getDate()).padStart(2, '0');
+              return `${y}-${m}-${d}`;
+            } catch (e) {
               return null;
             }
           })
@@ -552,7 +561,7 @@ const Dashboard = () => {
                   variant="recruiter"
                   selectedDate={selectedDate}
                   onDateSelect={setSelectedDate}
-                  interviewDates={interviewDates}
+                  highlightedDates={interviewDates}
                   onMonthChange={(month, year) => {
                     // ✅ Update selected month/year when calendar month changes
                     console.log(`📅 Month changed to: ${month + 1}/${year}`);
@@ -578,8 +587,13 @@ const Dashboard = () => {
                   totalInterviews: interviewDetails.length,
                   selectedMonth: selectedMonth,
                   selectedYear: selectedYear,
-                  selectedDate: selectedDate
+                  selectedDate: selectedDate,
+                  rawDetails: interviewDetails // Logging raw data to see if it's there
                 });
+
+                if (interviewDetails.length > 0) {
+                  window.lastInterviewDetails = interviewDetails; // Make it available in console
+                }
 
                 let filteredInterviews = interviewDetails.filter((item) => {
                   const interviewDate = item.scheduled_at || item.scheduled_date || item.date || item.interview_date
@@ -592,16 +606,17 @@ const Dashboard = () => {
                     // Parse date - handle "2025-11-29" format (date only, no time)
                     let date;
                     if (typeof interviewDate === 'string') {
+                      // Get only the date part if there's a time part
+                      const datePart = interviewDate.split(' ')[0];
+                      
                       // Handle "YYYY-MM-DD" format (date only)
-                      if (interviewDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                      if (datePart.match(/^\d{4}-\d{2}-\d{2}$/)) {
                         // Split and create date in local timezone to avoid UTC issues
-                        const [year, month, day] = interviewDate.split('-').map(Number);
+                        const [year, month, day] = datePart.split('-').map(Number);
                         date = new Date(year, month - 1, day); // month is 0-indexed
-                        console.log(`📅 Parsed date "${interviewDate}" -> Year: ${year}, Month: ${month} (0-indexed: ${month - 1}), Day: ${day}`);
-                      } else if (interviewDate.includes('T') || interviewDate.includes(' ')) {
-                        // Full datetime string
-                        date = new Date(interviewDate);
+                        // console.log(`📅 Parsed date "${interviewDate}" -> Year: ${year}, Month: ${month} (0-indexed: ${month - 1}), Day: ${day}`);
                       } else {
+                        // Full datetime string or other format
                         date = new Date(interviewDate);
                       }
                     } else {
@@ -613,29 +628,27 @@ const Dashboard = () => {
                       return false;
                     }
 
-                    // ✅ STRICTLY filter by month and year
-                    const interviewMonth = date.getMonth(); // 0-11 (November = 10)
-                    const interviewYear = date.getFullYear();
-
-                    console.log(`📊 Interview: ${interviewDate} -> Month: ${interviewMonth}, Year: ${interviewYear} | Selected: Month: ${selectedMonth}, Year: ${selectedYear}`);
-
-                    // Must match selected month AND year
-                    if (interviewMonth !== selectedMonth || interviewYear !== selectedYear) {
-                      console.log(`❌ Filtered out: Month mismatch (${interviewMonth} !== ${selectedMonth}) or Year mismatch (${interviewYear} !== ${selectedYear})`);
-                      return false;
-                    }
-
-                    console.log(`✅ Interview matches selected month/year!`);
-
-                    // If a specific date is selected, also filter by day
-                    if (selectedDate && selectedDate > 0) {
+                    // ✅ Logic: Agar koi date select nahi ki (selectedDate === 0), toh saare interviews dikhao.
+                    // Agar date select ki hai, toh sirf us specific date ke interviews dikhao.
+                    
+                    if (selectedDate && selectedDate !== 0) {
                       const dayOfMonth = date.getDate();
-                      const matches = dayOfMonth === selectedDate;
-                      console.log(`📅 Day filter: ${dayOfMonth} === ${selectedDate}? ${matches}`);
+                      const interviewMonth = date.getMonth();
+                      const interviewYear = date.getFullYear();
+
+                      // Get selected day/month/year from selectedDate (which can be a Date object or number)
+                      const selectedDayNum = selectedDate instanceof Date ? selectedDate.getDate() : selectedDate;
+                      const selectedMonthNum = selectedDate instanceof Date ? selectedDate.getMonth() : selectedMonth;
+                      const selectedYearNum = selectedDate instanceof Date ? selectedDate.getFullYear() : selectedYear;
+
+                      const matches = dayOfMonth === selectedDayNum && 
+                                    interviewMonth === selectedMonthNum && 
+                                    interviewYear === selectedYearNum;
+                      
                       return matches;
                     }
 
-                    // If no specific date selected, show all interviews for the selected month
+                    // Default: Show all interviews for this recruiter if no specific date is picked
                     return true;
                   } catch (error) {
                     console.error('❌ Error parsing date:', interviewDate, error);
@@ -643,7 +656,7 @@ const Dashboard = () => {
                   }
                 })
 
-                console.log(`✅ Filtered result: ${filteredInterviews.length} interviews for ${selectedMonth + 1}/${selectedYear}`);
+                console.log(`✅ Filtered result: ${filteredInterviews.length} interviews`);
 
                 // Format date helper
                 const formatDate = (dateString) => {
@@ -726,7 +739,7 @@ const Dashboard = () => {
                         : mode
 
                       // Extract time from various possible fields
-                      const time = formatTime(item.time || item.scheduled_time || item.interview_time || item.scheduled_at)
+                      const time = formatTime(item.time || item.scheduled_time || item.interview_time || item.full_scheduled_at || item.scheduled_at)
 
                       // Format time to 12-hour format with am/pm
                       const formatTime12Hour = (timeStr) => {

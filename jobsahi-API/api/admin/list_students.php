@@ -128,6 +128,7 @@ $stmt->close();
             sp.id AS profile_id,
             sp.skills,
             sp.education,
+            sp.profile_image,
             sp.resume,
             sp.certificates,
             sp.socials,
@@ -154,8 +155,14 @@ $stmt->close();
 
     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
     $host = $_SERVER['HTTP_HOST'];
-    $resume_folder = '/jobsahi-API/api/uploads/resume/';
-    $certificate_folder = '/jobsahi-API/api/uploads/student_certificate/';
+    
+    // Get the base directory dynamically
+    $script_path = str_replace('\\', '/', dirname($_SERVER['PHP_SELF']));
+    $base_dir = rtrim(explode('/api/', $script_path)[0], '/');
+
+    $resume_folder = $base_dir . '/api/uploads/resume/';
+    $certificate_folder = $base_dir . '/api/uploads/student_certificate/';
+    $profile_image_folder = $base_dir . '/api/uploads/profile_images/';
 
     $students = [];
     $student_profile_ids = [];
@@ -176,6 +183,24 @@ $stmt->close();
             if (is_array($decoded_social)) $socials = $decoded_social;
         }
 
+        // ✅ Build profile_image URL (R2 support)
+        $profile_image_url = null;
+        if (!empty($row['profile_image'])) {
+            if (strpos($row['profile_image'], 'http') === 0 && 
+                (strpos($row['profile_image'], 'r2.dev') !== false || 
+                 strpos($row['profile_image'], 'r2.cloudflarestorage.com') !== false)) {
+                $profile_image_url = $row['profile_image'];
+            } else {
+                $clean_img = str_replace(["\\", "/uploads/profile_images/", "./", "../"], "", $row['profile_image']);
+                $img_local = __DIR__ . '/../uploads/profile_images/' . $clean_img;
+                if (file_exists($img_local)) {
+                    $profile_image_url = $protocol . $host . $profile_image_folder . $clean_img;
+                } else {
+                    $profile_image_url = $protocol . $host . $profile_image_folder . basename($row['profile_image']);
+                }
+            }
+        }
+
         $students[$row['profile_id']] = [
             'user_info' => [
                 'user_id' => $row['user_id'],
@@ -188,6 +213,7 @@ $stmt->close();
                 'profile_id' => $row['profile_id'],
                 'skills' => $row['skills'],
                 'education' => $row['education'],
+                'profile_image' => $profile_image_url,
                 'resume' => $resume_url,
                 'certificates' => $certificate_url,
                 'socials' => $socials,

@@ -13,18 +13,19 @@ try {
         exit;
     }
 
-    // ✅ Determine recruiter_id (for admin, can filter by ?recruiter_id=)
+    // ✅ Determine recruiter_id or user_id (for admin, can filter)
     $recruiter_id = isset($_GET['recruiter_id']) ? intval($_GET['recruiter_id']) : 0;
+    $filter_user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : 0;
 
-    if ($user_role === 'admin' && $recruiter_id > 0) {
-        // Admin can fetch specific recruiter
+    if ($user_role === 'admin' && ($recruiter_id > 0 || $filter_user_id > 0)) {
+        // Admin can fetch specific recruiter by profile ID or user ID
         $sql = "SELECT rp.*, u.user_name, u.email, u.phone_number 
                 FROM recruiter_profiles rp
                 INNER JOIN users u ON rp.user_id = u.id
-                WHERE rp.id = ? AND rp.deleted_at IS NULL
-                ORDER BY rp.id DESC";
+                WHERE (rp.id = ? OR rp.user_id = ?) AND rp.deleted_at IS NULL
+                ORDER BY rp.id DESC LIMIT 1";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param('i', $recruiter_id);
+        $stmt->bind_param('ii', $recruiter_id, $filter_user_id);
     } elseif ($user_role === 'admin') {
         // Admin sees all recruiters
         $sql = "SELECT rp.*, u.user_name, u.email, u.phone_number 
@@ -54,8 +55,8 @@ try {
     // Example: if script is at jobsahi-API/api/employer/profile.php
     // → base_dir should be /jobsahi-API/api/uploads/recruiter_logo/
     $script_path = str_replace('\\', '/', dirname($_SERVER['PHP_SELF']));
-    $base_dir = explode('/api/', $script_path)[0]; // /jobsahi-API
-    $base_url = $protocol . $host . $base_dir . '/jobsahi-API/api/uploads/recruiter_logo/';
+    $base_dir = explode('/api/', $script_path)[0]; // /jobsahi-API or /
+    $base_url = $protocol . $host . rtrim($base_dir, '/') . '/api/uploads/recruiter_logo/';
 
     // ✅ Prepare response data
     $profiles = [];
@@ -72,7 +73,7 @@ try {
             } else {
                 // ✅ Old local file path - construct server URL (backward compatibility)
                 $clean_path = str_replace(["\\", "/uploads/recruiter_logo/", "./", "../"], "", $row['company_logo']);
-                $company_logo_url = $protocol . $host . "/jobsahi-API/api/uploads/recruiter_logo/" . $clean_path;
+                $company_logo_url = $base_url . $clean_path;
 
                 // ✅ Optional: Verify file exists (only append if real)
                 $local_path = __DIR__ . '/../uploads/recruiter_logo/' . $clean_path;

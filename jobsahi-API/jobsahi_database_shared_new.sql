@@ -36,6 +36,16 @@ CREATE TABLE `activity_logs` (
   `created_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_nopad_ci;
 
+--
+-- Dumping data for table `activity_logs`
+--
+
+INSERT INTO `activity_logs` (`id`, `user_id`, `action`, `reference_table`, `reference_id`, `created_at`) VALUES
+(1, 5, 'User logged in', 'users', 5, '2025-10-15 07:00:00'),
+(2, 6, 'Approved job application', 'applications', 1, '2025-10-15 08:30:00'),
+(3, 13, 'Created new course', 'courses', 13, '2025-10-15 09:15:00');
+
+
 -- --------------------------------------------------------
 
 --
@@ -48,6 +58,16 @@ CREATE TABLE `api_keys` (
   `api_key` varchar(255) DEFAULT NULL,
   `created_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_nopad_ci;
+
+--
+-- Dumping data for table `api_keys`
+--
+
+INSERT INTO `api_keys` (`id`, `service_name`, `api_key`, `created_at`) VALUES
+(1, 'Google Maps', 'AIzaSyA-XyZ1234567890', '2024-01-01 10:00:00'),
+(2, 'Razorpay', 'rzp_test_987654321', '2024-01-01 10:00:00'),
+(3, 'SendGrid', 'SG.abcdefghijklmnopqrstuv.wxyz', '2024-01-01 10:00:00');
+
 
 -- --------------------------------------------------------
 
@@ -78,7 +98,7 @@ CREATE TABLE `applications` (
 INSERT INTO `applications` (`id`, `job_id`, `interview_id`, `job_selected`, `student_id`, `status`, `applied_at`, `resume_link`, `cover_letter`, `created_at`, `modified_at`, `deleted_at`, `admin_action`) VALUES
 (1, 1, NULL, 0, 1, 'shortlisted', '2024-08-10 10:00:00', '/uploads/resumes/rahul_kumar_resume.pdf', 'I am very interested in this position and believe my Java and Spring Boot experience makes me a great fit.', '2024-08-10 10:00:00', '2025-09-02 15:57:10', NULL, 'pending'),
 (2, 2, NULL, 0, 4, 'shortlisted', '2024-08-11 11:00:00', '/uploads/resumes/kavya_patel_resume.pdf', 'I am passionate about frontend development and have strong React skills.', '2024-08-11 11:00:00', '2025-09-01 16:21:34', NULL, 'pending'),
-(4, 4, NULL, 0, 3, '', '2024-08-12 13:00:00', '/uploads/resumes/amit_sharma_resume.pdf', 'My experience with AWS and Docker aligns perfectly with your DevOps requirements.', '2024-08-12 13:00:00', '2025-09-03 22:54:52', NULL, 'pending'),
+(4, 4, NULL, 0, 3, 'applied', '2024-08-12 13:00:00', '/uploads/resumes/amit_sharma_resume.pdf', 'My experience with AWS and Docker aligns perfectly with your DevOps requirements.', '2024-08-12 13:00:00', '2025-09-03 22:54:52', NULL, 'pending'),
 (5, 5, NULL, 0, 5, 'shortlisted', '2024-08-09 14:00:00', '/uploads/resumes/arjun_reddy_resume.pdf', 'I have strong Android development skills and experience with Kotlin.', '2024-08-09 14:00:00', '2025-08-26 13:35:24', NULL, 'pending'),
 (6, 6, NULL, 0, 6, 'applied', '2024-08-13 15:00:00', '/uploads/resumes/neha_gupta_resume.pdf', 'My MBA in Marketing and digital marketing experience make me ideal for this position.', '2024-08-13 15:00:00', '2025-08-26 13:35:24', NULL, 'pending'),
 (7, 7, NULL, 0, 1, 'applied', '2024-08-14 16:00:00', '/uploads/resumes/rahul_kumar_resume.pdf', 'Looking forward to gaining industry experience through this internship.', '2024-08-14 16:00:00', '2025-08-26 13:35:24', NULL, 'pending'),
@@ -89,10 +109,10 @@ INSERT INTO `applications` (`id`, `job_id`, `interview_id`, `job_selected`, `stu
 (13, 3, NULL, 0, 5, 'applied', '2025-08-27 17:06:14', '/uploads/resumes/rahul_kumar_resume.pdf', 'Looking forward to gaining industry experience.', '2025-08-27 17:06:14', '2025-08-31 19:57:55', NULL, 'pending'),
 (20, 7, NULL, 0, 5, 'rejected', '2025-08-31 19:55:31', 'http://example.com/resume.pdf', 'I am really interested in this role.', '2025-08-31 19:55:31', '2025-08-31 19:58:02', NULL, 'pending'),
 (21, 6, NULL, 0, 5, 'applied', '2025-08-31 19:56:58', 'http://example.com/resume.pdf', 'I am really interested in this role.', '2025-08-31 19:56:58', '2025-08-31 19:57:22', NULL, 'pending'),
-(22, 3, NULL, 0, 6, '', '2025-09-04 09:49:26', 'https://example.com/my_resume.pdf', 'I am very interested in this position because...', '2025-09-04 09:49:26', '2025-09-04 09:49:26', NULL, 'pending'),
-(23, 4, NULL, 0, 6, '', '2025-09-04 10:08:04', 'https://example.com/my_resume.pdf', 'I am very interested in this position because...', '2025-09-04 10:08:04', '2025-09-04 10:08:04', NULL, 'pending'),
-(24, 4, NULL, 0, 5, '', '2025-09-04 10:08:30', 'https://example.com/my_resume.pdf', 'I am very interested in this position because...', '2025-09-04 10:08:30', '2025-09-04 10:08:30', NULL, 'pending'),
-(25, 9, NULL, 0, 6, '', '2025-09-04 10:09:43', 'https://example.com/my_resume.pdf', 'I am very interested in this position because...', '2025-09-04 10:09:43', '2025-09-04 10:09:43', NULL, 'pending');
+(22, 3, NULL, 0, 6, 'applied', '2025-09-04 09:49:26', 'https://example.com/my_resume.pdf', 'I am very interested in this position because...', '2025-09-04 09:49:26', '2025-09-04 09:49:26', NULL, 'pending'),
+(23, 4, NULL, 0, 6, 'applied', '2025-09-04 10:08:04', 'https://example.com/my_resume.pdf', 'I am very interested in this position because...', '2025-09-04 10:08:04', '2025-09-04 10:08:04', NULL, 'pending'),
+(24, 4, NULL, 0, 5, 'applied', '2025-09-04 10:08:30', 'https://example.com/my_resume.pdf', 'I am very interested in this position because...', '2025-09-04 10:08:30', '2025-09-04 10:08:30', NULL, 'pending'),
+(25, 9, NULL, 0, 6, 'applied', '2025-09-04 10:09:43', 'https://example.com/my_resume.pdf', 'I am very interested in this position because...', '2025-09-04 10:09:43', '2025-09-04 10:09:43', NULL, 'pending');
 
 -- --------------------------------------------------------
 
@@ -117,8 +137,8 @@ CREATE TABLE `batches` (
 --
 
 INSERT INTO `batches` (`id`, `course_id`, `name`, `batch_time_slot`, `start_date`, `end_date`, `media`, `instructor_id`, `admin_action`) VALUES
-(1, 1, 'FSWD-Jan-2024 (Final Approved)', '10:00 AM - 12:00 AM', '2024-01-15', '2024-07-15', '[\"uploads\\/batches\\/syllabus.pdf\"]', 5, ''),
-(2, 1, 'FSWD-Mar-2024 (Final Approved)', '11:00 AM - 1:00 AM', '2024-03-01', '2024-09-01', '[\"uploads\\/batches\\/syllabus1.pdf\"]', 20, ''),
+(1, 1, 'FSWD-Jan-2024 (Final Approved)', '10:00 AM - 12:00 AM', '2024-01-15', '2024-07-15', '[\"uploads\\/batches\\/syllabus.pdf\"]', 5, 'approved'),
+(2, 1, 'FSWD-Mar-2024 (Final Approved)', '11:00 AM - 1:00 AM', '2024-03-01', '2024-09-01', '[\"uploads\\/batches\\/syllabus1.pdf\"]', 20, 'approved'),
 (3, 2, 'DS-Feb-2024', NULL, '2024-02-01', '2024-06-01', NULL, NULL, 'pending'),
 (4, 3, 'Java-Jan-2024', NULL, '2024-01-20', '2024-06-20', NULL, NULL, 'pending'),
 (5, 3, 'DS-Feb-2024-Updated', NULL, '2024-02-05', '2024-08-05', NULL, 10, 'approved'),
@@ -334,6 +354,31 @@ INSERT INTO `course_feedback` (`id`, `student_id`, `course_id`, `rating`, `feedb
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `employer_feedback`
+--
+
+CREATE TABLE `employer_feedback` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `recruiter_id` int(10) UNSIGNED NOT NULL,
+  `job_id` int(10) UNSIGNED NOT NULL,
+  `rating` int(11) DEFAULT NULL CHECK (`rating` between 1 and 5),
+  `feedback` text DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_nopad_ci;
+
+--
+-- Dumping data for table `employer_feedback`
+--
+
+INSERT INTO `employer_feedback` (`id`, `recruiter_id`, `job_id`, `rating`, `feedback`, `created_at`) VALUES
+(1, 1, 1, 5, 'Great candidate pool, very satisfied with the results.', '2025-09-01 10:00:00'),
+(2, 2, 2, 4, 'Good experience, but would like to see more senior profiles.', '2025-09-02 11:30:00');
+
+
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `course_payments`
 --
 
@@ -415,6 +460,8 @@ CREATE TABLE `institute_profiles` (
   `postal_code` varchar(20) DEFAULT NULL,
   `contact_person` varchar(255) DEFAULT NULL,
   `contact_designation` varchar(100) DEFAULT NULL,
+  `registration_number` varchar(100) DEFAULT NULL,
+  `institute_logo` varchar(255) DEFAULT NULL,
   `accreditation` varchar(255) DEFAULT NULL,
   `established_year` int(4) DEFAULT NULL,
   `location` varchar(255) NOT NULL,
@@ -429,11 +476,11 @@ CREATE TABLE `institute_profiles` (
 -- Dumping data for table `institute_profiles`
 --
 
-INSERT INTO `institute_profiles` (`id`, `user_id`, `institute_name`, `institute_type`, `website`, `description`, `address`, `city`, `state`, `country`, `postal_code`, `contact_person`, `contact_designation`, `accreditation`, `established_year`, `location`, `courses_offered`, `created_at`, `modified_at`, `deleted_at`, `admin_action`) VALUES
-(1, 13, 'Tech Institute of Delhi', 'Private University', 'https://www.techinstitutedelhi.edu', 'Leading institute specializing in technology and software development education.', '123 Connaught Place, Block A', 'Delhi', 'Delhi', 'India', '110001', 'Dr. Rajesh Kumar', 'Director of Admissions', 'NAAC A+ Accredited, AICTE Approved', 2010, 'Delhi, India', 'Full Stack Development, Data Science, Machine Learning, Python Programming', '2024-01-15 09:00:00', '2025-09-30 00:59:15', NULL, 'approved'),
-(2, 14, 'Mumbai Institute of Technology', 'Deemed University', 'https://www.mitbombay.edu', 'Premier institute for Java development and Spring Boot training.', '456 Andheri West, Main Road', 'Mumbai', 'Maharashtra', 'India', '400058', 'Prof. Priya Sharma', 'Head of Department', 'UGC Approved, NAAC A Accredited', 2008, 'Mumbai, India', 'Java Development, Spring Boot, Microservices, Cloud Computing', '2024-01-20 10:00:00', '2025-09-30 00:59:15', NULL, 'approved'),
-(3, 15, 'Bangalore Tech Academy', 'Private College', 'https://www.bangaloretech.edu', 'Specialized training in Full Stack and Mobile App Development.', '789 MG Road, Sector 5', 'Bangalore', 'Karnataka', 'India', '560001', 'Mr. Arun Patel', 'Academic Coordinator', 'AICTE Approved, ISO 9001 Certified', 2012, 'Bangalore, India', 'React Development, Node.js, Mobile App Development, DevOps', '2024-01-25 11:00:00', '2025-09-30 00:59:15', NULL, 'approved'),
-(4, 50, 'Mumbai Coding Institute', 'Training Center', 'https://www.mumbaicodingacademy.com', 'Professional training center for Java, PHP, and React development.', '321 Bandra East, Commercial Complex', 'Mumbai', 'Maharashtra', 'India', '400051', 'Ms. Neha Reddy', 'Training Manager', 'NSDC Affiliated, Skill India Partner', 2015, 'Mumbai', 'Java, PHP, React', '2025-09-25 15:30:31', '2025-09-30 00:59:15', NULL, 'approved');
+INSERT INTO `institute_profiles` (`id`, `user_id`, `institute_name`, `institute_type`, `website`, `description`, `address`, `city`, `state`, `country`, `postal_code`, `contact_person`, `contact_designation`, `registration_number`, `institute_logo`, `accreditation`, `established_year`, `location`, `courses_offered`, `created_at`, `modified_at`, `deleted_at`, `admin_action`) VALUES
+(1, 13, 'Tech Institute of Delhi', 'Private University', 'https://www.techinstitutedelhi.edu', 'Leading institute specializing in technology and software development education.', '123 Connaught Place, Block A', 'Delhi', 'Delhi', 'India', '110001', 'Dr. Rajesh Kumar', 'Director of Admissions', NULL, NULL, 'NAAC A+ Accredited, AICTE Approved', 2010, 'Delhi, India', 'Full Stack Development, Data Science, Machine Learning, Python Programming', '2024-01-15 09:00:00', '2025-09-30 00:59:15', NULL, 'approved'),
+(2, 14, 'Mumbai Institute of Technology', 'Deemed University', 'https://www.mitbombay.edu', 'Premier institute for Java development and Spring Boot training.', '456 Andheri West, Main Road', 'Mumbai', 'Maharashtra', 'India', '400058', 'Prof. Priya Sharma', 'Head of Department', NULL, NULL, 'UGC Approved, NAAC A Accredited', 2008, 'Mumbai, India', 'Java Development, Spring Boot, Microservices, Cloud Computing', '2024-01-20 10:00:00', '2025-09-30 00:59:15', NULL, 'approved'),
+(3, 15, 'Bangalore Tech Academy', 'Private College', 'https://www.bangaloretech.edu', 'Specialized training in Full Stack and Mobile App Development.', '789 MG Road, Sector 5', 'Bangalore', 'Karnataka', 'India', '560001', 'Mr. Arun Patel', 'Academic Coordinator', NULL, NULL, 'AICTE Approved, ISO 9001 Certified', 2012, 'Bangalore, India', 'React Development, Node.js, Mobile App Development, DevOps', '2024-01-25 11:00:00', '2025-09-30 00:59:15', NULL, 'approved'),
+(4, 50, 'Mumbai Coding Institute', 'Training Center', 'https://www.mumbaicodingacademy.com', 'Professional training center for Java, PHP, and React development.', '321 Bandra East, Commercial Complex', 'Mumbai', 'Maharashtra', 'India', '400051', 'Ms. Neha Reddy', 'Training Manager', NULL, NULL, 'NSDC Affiliated, Skill India Partner', 2015, 'Mumbai', 'Java, PHP, React', '2025-09-25 15:30:31', '2025-09-30 00:59:15', NULL, 'approved');
 
 -- --------------------------------------------------------
 
@@ -446,9 +493,12 @@ CREATE TABLE `interviews` (
   `application_id` int(10) UNSIGNED NOT NULL,
   `scheduled_at` datetime NOT NULL,
   `mode` enum('online','offline') NOT NULL DEFAULT 'online',
+  `platform_name` varchar(100) DEFAULT NULL,
+  `interview_link` varchar(255) DEFAULT NULL,
   `location` text NOT NULL,
-  `status` enum('scheduled','completed','cancelled') NOT NULL DEFAULT 'scheduled',
-  `feedback` text NOT NULL,
+  `status` varchar(50) NOT NULL DEFAULT 'scheduled',
+  `interview_info` text DEFAULT NULL,
+  `feedback` text DEFAULT NULL,
   `created_at` datetime DEFAULT current_timestamp(),
   `modified_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `deleted_at` datetime DEFAULT NULL,
@@ -459,13 +509,15 @@ CREATE TABLE `interviews` (
 -- Dumping data for table `interviews`
 --
 
-INSERT INTO `interviews` (`id`, `application_id`, `scheduled_at`, `mode`, `location`, `status`, `feedback`, `created_at`, `modified_at`, `deleted_at`, `admin_action`) VALUES
-(1, 1, '2024-08-20 14:00:00', 'online', 'Google Meet Link: meet.google.com/xyz-abc-def', 'scheduled', '', '2024-08-15 10:00:00', '2025-08-26 13:35:52', NULL, 'pending'),
-(3, 5, '2024-08-22 10:00:00', 'offline', 'TechCorp Solutions Office, Bangalore', 'scheduled', '', '2024-08-16 12:00:00', '2025-08-26 13:35:52', NULL, 'pending'),
-(4, 4, '2025-09-10 10:00:00', 'online', 'Zoom', 'scheduled', 'Candidate is promising', '2025-09-01 16:27:25', '2025-09-01 17:20:20', NULL, 'pending'),
-(5, 4, '2025-09-05 10:00:00', 'online', 'Zoom', 'scheduled', '', '2025-09-01 16:27:40', '2025-09-01 16:27:40', NULL, 'pending'),
-(6, 4, '2025-09-05 10:00:00', 'online', 'Zoom', 'scheduled', '', '2025-09-03 22:54:52', '2025-09-03 22:54:52', NULL, 'pending'),
-(7, 4, '2025-09-05 10:00:00', 'online', 'Zoom', 'scheduled', '', '2025-09-03 23:00:13', '2025-09-03 23:00:13', NULL, 'pending');
+INSERT INTO `interviews` (`id`, `application_id`, `scheduled_at`, `mode`, `platform_name`, `interview_link`, `location`, `status`, `interview_info`, `feedback`, `created_at`, `modified_at`, `deleted_at`, `admin_action`) VALUES
+(1, 1, '2024-08-20 14:00:00', 'online', 'Google Meet', 'https://meet.google.com/xyz-abc-def', '', 'scheduled', 'Initial interview', '', '2024-08-15 10:00:00', '2025-08-26 13:35:52', NULL, 'pending'),
+(3, 5, '2024-08-22 10:00:00', 'offline', NULL, NULL, 'TechCorp Solutions Office, Bangalore', 'scheduled', 'On-site technical round', '', '2024-08-16 12:00:00', '2025-08-26 13:35:52', NULL, 'pending'),
+(4, 4, '2025-09-10 10:00:00', 'online', 'Zoom', 'https://zoom.us/j/123', '', 'scheduled', 'Candidate is promising', '', '2025-09-01 16:27:25', '2025-09-01 17:20:20', NULL, 'pending'),
+(5, 4, '2025-09-05 10:00:00', 'online', 'Zoom', 'https://zoom.us/j/456', '', 'scheduled', '', '', '2025-09-01 16:27:40', '2025-09-01 16:27:40', NULL, 'pending'),
+(10, 1, '2025-10-25 10:00:00', 'online', 'Zoom', 'https://zoom.us/j/123456789', '', 'scheduled', 'Initial technical round', '', '2025-10-24 10:00:00', '2025-10-24 10:00:00', NULL, 'approved'),
+(11, 2, '2025-10-25 11:30:00', 'online', 'Google Meet', 'https://meet.google.com/abc-defg-hij', '', 'scheduled', 'Design portfolio review', '', '2025-10-24 11:00:00', '2025-10-24 11:00:00', NULL, 'approved'),
+(12, 4, '2026-05-18 10:00:00', 'online', 'Zoom', 'https://zoom.us/j/987654321', '', 'scheduled', 'May 2026 Technical Round', '', '2026-05-14 10:00:00', '2026-05-14 10:00:00', NULL, 'approved'),
+(13, 1, '2026-05-20 14:00:00', 'offline', NULL, NULL, 'Conference Room A, Tech Park', 'scheduled', 'May 2026 Final Interview', '', '2026-05-14 11:00:00', '2026-05-14 11:00:00', NULL, 'approved');
 
 -- --------------------------------------------------------
 
@@ -524,18 +576,18 @@ CREATE TABLE `jobs` (
 --
 
 INSERT INTO `jobs` (`id`, `recruiter_id`, `company_info_id`, `category_id`, `title`, `description`, `location`, `skills_required`, `salary_min`, `salary_max`, `job_type`, `experience_required`, `application_deadline`, `is_remote`, `no_of_vacancies`, `status`, `created_at`, `updated_at`, `admin_action`) VALUES
-(1, 1, NULL, NULL, 'Senior Software Engineer', 'We are looking for a senior software engineer with expertise in backend development and system design.', 'Noida, India', 'Java, Spring Boot, Microservices, AWS, Docker', 800000.00, 999999.99, 'full_time', '3-5 years', '2025-09-30 23:59:59', 0, 2, '', '2024-08-01 10:00:00', NULL, 'pending'),
-(2, 2, NULL, NULL, 'Frontend Developer', 'Join our team as a frontend developer to build amazing user experiences.', 'Bangalore, India', 'React, JavaScript, TypeScript, CSS, HTML', 600000.00, 900000.00, 'full_time', '2-4 years', '2025-09-15 23:59:59', 0, 3, '', '2024-08-02 11:00:00', NULL, 'pending'),
+(1, 1, NULL, NULL, 'Senior Software Engineer', 'We are looking for a senior software engineer with expertise in backend development and system design.', 'Noida, India', 'Java, Spring Boot, Microservices, AWS, Docker', 800000.00, 999999.99, 'full_time', '3-5 years', '2025-09-30 23:59:59', 0, 2, 'open', '2024-08-01 10:00:00', NULL, 'pending'),
+(2, 2, NULL, NULL, 'Frontend Developer', 'Join our team as a frontend developer to build amazing user experiences.', 'Bangalore, India', 'React, JavaScript, TypeScript, CSS, HTML', 600000.00, 900000.00, 'full_time', '2-4 years', '2025-09-15 23:59:59', 0, 3, 'open', '2024-08-02 11:00:00', NULL, 'pending'),
 (3, 3, NULL, NULL, 'Data Scientist', 'Looking for a data scientist to work on machine learning models and analytics.', 'Hyderabad, India', 'Python, Machine Learning, TensorFlow, SQL, Statistics', 900000.00, 999999.99, 'full_time', '2-5 years', '2025-10-15 23:59:59', 0, 1, 'open', '2024-08-03 12:00:00', NULL, 'pending'),
 (4, 1, NULL, NULL, 'DevOps Engineer', 'DevOps engineer position for managing CI/CD pipelines and infrastructure.', 'Noida, India', 'AWS, Docker, Kubernetes, Jenkins, Linux', 700000.00, 999999.99, 'full_time', '2-4 years', '2025-09-20 23:59:59', 0, 2, 'open', '2024-08-04 13:00:00', NULL, 'pending'),
-(5, 2, NULL, NULL, 'Senior PHP Developer', 'Work on backend APIs and microservices', 'Remote', 'PHP, MySQL, JWT, REST API', 50000.00, 90000.00, '', '3+ years', '2025-09-30 00:00:00', 1, 2, 'closed', '2024-08-05 14:00:00', NULL, 'pending'),
+(5, 2, NULL, NULL, 'Senior PHP Developer', 'Work on backend APIs and microservices', 'Remote', 'PHP, MySQL, JWT, REST API', 50000.00, 90000.00, 'full_time', '3+ years', '2025-09-30 00:00:00', 1, 2, 'closed', '2024-08-05 14:00:00', NULL, 'pending'),
 (6, 3, NULL, NULL, 'Digital Marketing Specialist', 'Digital marketing role focusing on SEO, SEM, and social media marketing.', 'Hyderabad, India', 'Digital Marketing, SEO, Google Ads, Social Media, Analytics', 400000.00, 700000.00, 'full_time', '1-3 years', '2025-10-01 23:59:59', 1, 1, 'open', '2024-08-06 15:00:00', NULL, 'pending'),
 (7, 1, NULL, NULL, 'Software Development Intern', 'Internship opportunity for computer science students.', 'Noida, India', 'Java, Python, Web Development, Database', 15000.00, 25000.00, 'internship', '0-1 years', '2025-08-31 23:59:59', 1, 5, 'open', '2024-08-07 16:00:00', NULL, 'pending'),
-(9, NULL, NULL, NULL, 'Frontend Developer', 'React developer needed', 'Remote', 'React, JS, CSS, HTML', 50000.00, 80000.00, '', '2+ years', '2025-12-31 00:00:00', 1, 2, 'open', '2025-09-01 13:21:17', NULL, 'pending'),
-(11, NULL, NULL, NULL, 'Frontend Developer', 'React developer needed', 'Remote', 'React, JS, CSS, HTML', 50000.00, 80000.00, '', '2+ years', '2025-12-31 00:00:00', 1, 2, 'open', '2025-09-01 13:23:27', NULL, 'pending'),
-(12, NULL, NULL, NULL, 'Frontend Developer', 'React developer needed', 'Remote', 'React, JS, CSS, HTML', 50000.00, 80000.00, '', '2+ years', '2025-12-31 00:00:00', 1, 2, 'open', '2025-09-01 13:24:04', NULL, 'approved'),
-(13, NULL, NULL, NULL, 'Full Stack Developer', 'We are looking for a skilled developer.', 'Bangalore', 'PHP, MySQL, React, Node.js', 50000.00, 80000.00, '', '2-4 years', '2025-12-31 00:00:00', 1, 3, 'open', '2025-09-25 18:27:55', NULL, 'approved'),
-(15, 4, NULL, NULL, 'Full Stack Developer', 'We are looking for a skilled developer.', 'Bangalore', 'PHP, MySQL, React, Node.js', 50000.00, 80000.00, '', '2-4 years', '2025-12-31 00:00:00', 1, 3, 'open', '2025-09-25 18:34:51', NULL, 'approved');
+(9, NULL, NULL, NULL, 'Frontend Developer', 'React developer needed', 'Remote', 'React, JS, CSS, HTML', 50000.00, 80000.00, 'full_time', '2+ years', '2025-12-31 00:00:00', 1, 2, 'open', '2025-09-01 13:21:17', NULL, 'pending'),
+(11, NULL, NULL, NULL, 'Frontend Developer', 'React developer needed', 'Remote', 'React, JS, CSS, HTML', 50000.00, 80000.00, 'full_time', '2+ years', '2025-12-31 00:00:00', 1, 2, 'open', '2025-09-01 13:23:27', NULL, 'pending'),
+(12, NULL, NULL, NULL, 'Frontend Developer', 'React developer needed', 'Remote', 'React, JS, CSS, HTML', 50000.00, 80000.00, 'full_time', '2+ years', '2025-12-31 00:00:00', 1, 2, 'open', '2025-09-01 13:24:04', NULL, 'approved'),
+(13, NULL, NULL, NULL, 'Full Stack Developer', 'We are looking for a skilled developer.', 'Bangalore', 'PHP, MySQL, React, Node.js', 50000.00, 80000.00, 'full_time', '2-4 years', '2025-12-31 00:00:00', 1, 3, 'open', '2025-09-25 18:27:55', NULL, 'approved'),
+(15, 4, NULL, NULL, 'Full Stack Developer', 'We are looking for a skilled developer.', 'Bangalore', 'PHP, MySQL, React, Node.js', 50000.00, 80000.00, 'full_time', '2-4 years', '2025-12-31 00:00:00', 1, 3, 'open', '2025-09-25 18:34:51', NULL, 'approved');
 
 -- --------------------------------------------------------
 
@@ -828,6 +880,15 @@ CREATE TABLE `recommendations` (
   `admin_action` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_nopad_ci;
 
+--
+-- Dumping data for table `recommendations`
+--
+
+INSERT INTO `recommendations` (`id`, `student_id`, `course_id`, `recommended_by`, `recommended_at`, `reason`, `admin_action`) VALUES
+(1, 1, 2, 'system', '2025-10-15 10:00:00', 'Based on your interest in Data Science', 'approved'),
+(2, 3, 1, 'admin', '2025-10-15 11:00:00', 'Recommended for career growth in Java', 'approved');
+
+
 -- --------------------------------------------------------
 
 --
@@ -844,6 +905,15 @@ CREATE TABLE `recruiter_company_info` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `recruiter_company_info`
+--
+
+INSERT INTO `recruiter_company_info` (`id`, `job_id`, `recruiter_id`, `person_name`, `phone`, `additional_contact`, `created_at`, `updated_at`) VALUES
+(1, 1, 1, 'Rajesh Sharma', '9876543210', 'hr@newcompany.com', '2024-08-01 10:00:00', '2024-08-01 10:00:00'),
+(2, 2, 2, 'Priya Verma', '9876543211', 'priya@techcorp.com', '2024-08-02 11:00:00', '2024-08-02 11:00:00');
+
 
 -- --------------------------------------------------------
 
@@ -870,7 +940,7 @@ CREATE TABLE `recruiter_profiles` (
 --
 
 INSERT INTO `recruiter_profiles` (`id`, `user_id`, `company_name`, `company_logo`, `industry`, `website`, `location`, `created_at`, `modified_at`, `deleted_at`, `admin_action`) VALUES
-(1, 2, 'New Company Name', 'logo.png', 'IT Services', 'https://example.com', 'Mumbai', '2025-08-11 14:10:23', '2025-09-03 17:02:28', NULL, ''),
+(1, 2, 'New Company Name', 'logo.png', 'IT Services', 'https://example.com', 'Mumbai', '2025-08-11 14:10:23', '2025-09-03 17:02:28', NULL, 'approved'),
 (2, 16, 'Updated Company Name', '/uploads/logos/techcorp_logo.png', 'Technology', 'https://techcorp.com', 'New York, NY', '2024-05-15 10:00:00', '2025-09-25 17:31:06', NULL, 'approved'),
 (3, 17, 'InnovateLabs', '/uploads/logos/innovate_logo.png', 'AI & Machine Learning', 'https://innovatelabs.com', 'Hyderabad, India', '2024-05-20 11:00:00', '2025-09-25 17:31:12', NULL, 'approved'),
 (4, 49, 'techcorp', 'techcorp_logo1.png', 'Technology', 'https://techcorp.com', 'New York, NY', '2025-09-25 15:20:08', '2025-09-25 18:05:37', NULL, 'approved');
@@ -1128,6 +1198,8 @@ CREATE TABLE `student_profiles` (
   `certificates` text DEFAULT NULL,
   `portfolio_link` varchar(255) NOT NULL,
   `linkedin_url` varchar(255) NOT NULL,
+  `socials` text DEFAULT NULL,
+  `profile_image` varchar(255) DEFAULT NULL,
   `dob` date NOT NULL,
   `gender` enum('male','female','other','prefer_not_to_say') DEFAULT NULL,
   `job_type` enum('full_time','part_time','internship','contract') DEFAULT NULL,
@@ -1151,14 +1223,14 @@ CREATE TABLE `student_profiles` (
 -- Dumping data for table `student_profiles`
 --
 
-INSERT INTO `student_profiles` (`id`, `user_id`, `skills`, `education`, `resume`, `certificates`, `portfolio_link`, `linkedin_url`, `dob`, `gender`, `job_type`, `trade`, `created_at`, `modified_at`, `deleted_at`, `bio`, `experience`, `projects`, `languages`, `aadhar_number`, `graduation_year`, `cgpa`, `latitude`, `longitude`, `location`) VALUES
-(1, 5, 'PHP, SQL, JavaScript, HTML, CSS', 'Bachelor of Technology in Computer Science (B.Tech)', 'uploads/resumes/student_5_resume.pdf', 'uploads/certificates/student_5_certificates.zip', 'https://portfolio.example.com/student5', 'https://linkedin.com/in/student5', '2000-05-15', 'female', 'full_time', 'IT', '2024-06-01 10:00:00', '2025-10-24 12:05:27', NULL, 'A passionate software developer focused on building scalable backend systems and modern web applications. Skilled in PHP, React, and SQL.', '{\"level\":\"Intermediate\",\"years\":\"2\",\"details\":[{\"company\":\"TechNova Pvt Ltd\",\"role\":\"Backend Developer\",\"duration\":\"Jan 2023 - May 2024\",\"description\":\"Developed and maintained PHP-based REST APIs for client applications.\"},{\"company\":\"Brightorial Tech Solutions\",\"role\":\"Intern\",\"duration\":\"Aug 2022 - Dec 2022\",\"description\":\"Assisted in developing a React-based admin panel with MySQL backend.\"}]}', '[{\"name\":\"JobSahi Platform\",\"link\":\"https:\\/\\/jobsahi.in\"}]', 'English, Hindi', '9876-5432-8989', 2023, 8.70, 22.71960000, 75.85770000, 'Indore, Madhya Pradesh'),
-(3, 9, '', '', '', NULL, 'http://portfolio.com', 'http://linkedin.com/in/student', '2000-05-15', 'female', 'full_time', 'IT', '2024-06-03 12:00:00', '2025-09-03 14:01:24', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(4, 10, 'React, Angular, TypeScript, CSS, UI/UX Design', 'B.Des - NIFT Delhi (2020-2024)', '/uploads/resumes/kavya_patel_resume.pdf', NULL, 'https://kavyapatel.design', 'https://linkedin.com/in/kavyapatel', '2002-01-14', 'female', 'full_time', 'Frontend Development', '2024-06-04 13:00:00', '2025-08-26 13:27:34', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(5, 11, 'PHP, MySQL, React', 'B.Tech in Computer Science', '/uploads/resumes/student_resume.pdf', 'uploads/certificates/approved_certificate.pdf', 'https://myportfolio.com', 'https://linkedin.com/in/student', '2000-05-15', 'female', '', 'Software Development', '2024-06-05 14:00:00', '2025-09-03 15:19:13', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(6, 12, 'Digital Marketing, SEO, Content Writing, Social Media', 'MBA Marketing - Symbiosis Pune (2022-2024)', '/uploads/resumes/neha_gupta_resume.pdf', NULL, 'https://nehagupta.marketing', 'https://linkedin.com/in/nehagupta', '1999-12-05', 'female', 'full_time', 'Digital Marketing', '2024-06-06 15:00:00', '2025-08-26 13:27:34', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(7, 48, 'PHP, MySQL, React', 'B.Tech Computer Science', 'resume.pdf', 'AWS, Azure', 'http://myportfolio.com', 'http://linkedin.com/in/example', '1998-05-10', 'female', 'full_time', 'Software Development', '2025-09-25 15:18:23', '2025-10-01 21:00:24', NULL, 'Passionate developer with 3 years experience', '3 years', NULL, NULL, NULL, 2020, 8.50, NULL, NULL, NULL),
-(15, 51, ' R, Machine Learning, Deep Learning, TensorFlow, PyTorch, Pandas, NumPy, Scikit-learn, SQL, Power BI, Tableau, Statistics, NLP', 'M.Sc. Data Science - IIT Delhi | B.Sc. Mathematics - St. Stephen\'s College, Delhi', 'https://resume.io/arjun.pdf', 'Google Data Analytics Professional Certificate, IBM Data Science Professional Certificate, Deep Learning Specialization (Coursera), TensorFlow Developer Certificate', 'https://arjunreddy-ds.netlify.app', 'https://linkedin.com/in/arjun-reddy-datascience', '2000-09-05', 'male', '', 'Data Science & Analytics', '2025-10-19 18:46:41', '2025-10-22 08:38:05', NULL, 'Data science enthusiast with strong mathematical foundation and hands-on experience in machine learning. Completed multiple projects in predictive analytics and NLP. Passionate about deriving insights from data and building intelligent systems. Actively contributing to open-source ML projects.', '{\"level\":\"intermediate\",\"years\":\"1.5\",\"details\":[{\"company\":\"Fractal Analytics\",\"position\":\"Data Science Intern\",\"duration\":\"Jun 2024 - Present\",\"description\":\"Working on customer churn prediction models for telecom client. Implemented ensemble learning techniques improving accuracy by 15%. Creating interactive dashboards using Power BI.\"},{\"type\":\"research\",\"company\":\"IIT Delhi Research Lab\",\"position\":\"Research Assistant\",\"duration\":\"Jan 2024 - May 2024\",\"description\":\"Conducted research on sentiment analysis for regional Indian languages. Published paper in national conference. Developed custom NLP pipeline using BERT.\"},{\"type\":\"project\",\"company\":\"Kaggle Competition\",\"position\":\"Individual Contributor\",\"duration\":\"Aug 2023 - Nov 2023\",\"description\":\"Participated in image classification competition. Achieved top 5% ranking using CNN and transfer learning techniques.\"}]}', NULL, NULL, NULL, 2025, 9.40, 22.71956870, 75.85772580, 'Martand Chowk, Indore City, Indore, Juni Indore Tahsil, Indore, Madhya Pradesh, 452001, India');
+INSERT INTO `student_profiles` (`id`, `user_id`, `skills`, `education`, `resume`, `certificates`, `portfolio_link`, `linkedin_url`, `socials`, `profile_image`, `dob`, `gender`, `job_type`, `trade`, `created_at`, `modified_at`, `deleted_at`, `bio`, `experience`, `projects`, `languages`, `aadhar_number`, `graduation_year`, `cgpa`, `latitude`, `longitude`, `location`) VALUES
+(1, 5, 'PHP, SQL, JavaScript, HTML, CSS', 'Bachelor of Technology in Computer Science (B.Tech)', 'uploads/resumes/student_5_resume.pdf', 'uploads/certificates/student_5_certificates.zip', 'https://portfolio.example.com/student5', 'https://linkedin.com/in/student5', NULL, NULL, '2000-05-15', 'female', 'full_time', 'IT', '2024-06-01 10:00:00', '2025-10-24 12:05:27', NULL, 'A passionate software developer focused on building scalable backend systems and modern web applications. Skilled in PHP, React, and SQL.', '{\"level\":\"Intermediate\",\"years\":\"2\",\"details\":[{\"company\":\"TechNova Pvt Ltd\",\"role\":\"Backend Developer\",\"duration\":\"Jan 2023 - May 2024\",\"description\":\"Developed and maintained PHP-based REST APIs for client applications.\"},{\"company\":\"Brightorial Tech Solutions\",\"role\":\"Intern\",\"duration\":\"Aug 2022 - Dec 2022\",\"description\":\"Assisted in developing a React-based admin panel with MySQL backend.\"}]}', '[{\"name\":\"JobSahi Platform\",\"link\":\"https:\\/\\/jobsahi.in\"}]', 'English, Hindi', '9876-5432-8989', 2023, 8.70, 22.71960000, 75.85770000, 'Indore, Madhya Pradesh'),
+(3, 9, '', '', '', NULL, 'http://portfolio.com', 'http://linkedin.com/in/student', NULL, NULL, '2000-05-15', 'female', 'full_time', 'IT', '2024-06-03 12:00:00', '2025-09-03 14:01:24', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(4, 10, 'React, Angular, TypeScript, CSS, UI/UX Design', 'B.Des - NIFT Delhi (2020-2024)', '/uploads/resumes/kavya_patel_resume.pdf', NULL, 'https://kavyapatel.design', 'https://linkedin.com/in/kavyapatel', NULL, NULL, '2002-01-14', 'female', 'full_time', 'Frontend Development', '2024-06-04 13:00:00', '2025-08-26 13:27:34', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(5, 11, 'PHP, MySQL, React', 'B.Tech in Computer Science', '/uploads/resumes/student_resume.pdf', 'uploads/certificates/approved_certificate.pdf', 'https://myportfolio.com', 'https://linkedin.com/in/student', NULL, NULL, '2000-05-15', 'female', '', 'Software Development', '2024-06-05 14:00:00', '2025-09-03 15:19:13', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(6, 12, 'Digital Marketing, SEO, Content Writing, Social Media', 'MBA Marketing - Symbiosis Pune (2022-2024)', '/uploads/resumes/neha_gupta_resume.pdf', NULL, 'https://nehagupta.marketing', 'https://linkedin.com/in/nehagupta', NULL, NULL, '1999-12-05', 'female', 'full_time', 'Digital Marketing', '2024-06-06 15:00:00', '2025-08-26 13:27:34', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(7, 48, 'PHP, MySQL, React', 'B.Tech Computer Science', 'resume.pdf', 'AWS, Azure', 'http://myportfolio.com', 'http://linkedin.com/in/example', NULL, NULL, '1998-05-10', 'female', 'full_time', 'Software Development', '2025-09-25 15:18:23', '2025-10-01 21:00:24', NULL, 'Passionate developer with 3 years experience', '3 years', NULL, NULL, NULL, 2020, 8.50, NULL, NULL, NULL),
+(15, 51, ' R, Machine Learning, Deep Learning, TensorFlow, PyTorch, Pandas, NumPy, Scikit-learn, SQL, Power BI, Tableau, Statistics, NLP', 'M.Sc. Data Science - IIT Delhi | B.Sc. Mathematics - St. Stephen\'s College, Delhi', 'https://resume.io/arjun.pdf', 'Google Data Analytics Professional Certificate, IBM Data Science Professional Certificate, Deep Learning Specialization (Coursera), TensorFlow Developer Certificate', 'https://arjunreddy-ds.netlify.app', 'https://linkedin.com/in/arjun-reddy-datascience', NULL, NULL, '2000-09-05', 'male', '', 'Data Science & Analytics', '2025-10-19 18:46:41', '2025-10-22 08:38:05', NULL, 'Data science enthusiast with strong mathematical foundation and hands-on experience in machine learning. Completed multiple projects in predictive analytics and NLP. Passionate about deriving insights from data and building intelligent systems. Actively contributing to open-source ML projects.', '{\"level\":\"intermediate\",\"years\":\"1.5\",\"details\":[{\"company\":\"Fractal Analytics\",\"position\":\"Data Science Intern\",\"duration\":\"Jun 2024 - Present\",\"description\":\"Working on customer churn prediction models for telecom client. Implemented ensemble learning techniques improving accuracy by 15%. Creating interactive dashboards using Power BI.\"},{\"type\":\"research\",\"company\":\"IIT Delhi Research Lab\",\"position\":\"Research Assistant\",\"duration\":\"Jan 2024 - May 2024\",\"description\":\"Conducted research on sentiment analysis for regional Indian languages. Published paper in national conference. Developed custom NLP pipeline using BERT.\"},{\"type\":\"project\",\"company\":\"Kaggle Competition\",\"position\":\"Individual Contributor\",\"duration\":\"Aug 2023 - Nov 2023\",\"description\":\"Participated in image classification competition. Achieved top 5% ranking using CNN and transfer learning techniques.\"}]}', NULL, NULL, NULL, 2025, 9.40, 22.71956870, 75.85772580, 'Martand Chowk, Indore City, Indore, Juni Indore Tahsil, Indore, Madhya Pradesh, 452001, India');
 
 -- --------------------------------------------------------
 
@@ -1368,6 +1440,15 @@ ALTER TABLE `course_feedback`
   ADD PRIMARY KEY (`id`),
   ADD KEY `student_id` (`student_id`),
   ADD KEY `course_id` (`course_id`);
+
+--
+-- Indexes for table `employer_feedback`
+--
+ALTER TABLE `employer_feedback`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `recruiter_id` (`recruiter_id`),
+  ADD KEY `job_id` (`job_id`);
+
 
 --
 -- Indexes for table `course_payments`
@@ -1650,6 +1731,13 @@ ALTER TABLE `course_feedback`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
+-- AUTO_INCREMENT for table `employer_feedback`
+--
+ALTER TABLE `employer_feedback`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+
+--
 -- AUTO_INCREMENT for table `course_payments`
 --
 ALTER TABLE `course_payments`
@@ -1875,6 +1963,14 @@ ALTER TABLE `course_feedback`
   ADD CONSTRAINT `course_feedback_ibfk_2` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`) ON DELETE CASCADE;
 
 --
+-- Constraints for table `employer_feedback`
+--
+ALTER TABLE `employer_feedback`
+  ADD CONSTRAINT `employer_feedback_ibfk_1` FOREIGN KEY (`recruiter_id`) REFERENCES `recruiter_profiles` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `employer_feedback_ibfk_2` FOREIGN KEY (`job_id`) REFERENCES `jobs` (`id`) ON DELETE CASCADE;
+
+
+--
 -- Constraints for table `course_payments`
 --
 ALTER TABLE `course_payments`
@@ -2020,72 +2116,160 @@ ALTER TABLE `transactions`
 
 CREATE TABLE `campus_drives` (
   `id` int(10) UNSIGNED NOT NULL,
-  `recruiter_id` int(10) UNSIGNED NOT NULL,
-  `institute_id` int(10) UNSIGNED NOT NULL,
-  `course_id` int(10) UNSIGNED DEFAULT NULL,
-  `job_id` int(10) UNSIGNED DEFAULT NULL,
   `title` varchar(255) NOT NULL,
-  `description` text DEFAULT NULL,
-  `drive_date` date NOT NULL,
-  `location` varchar(255) DEFAULT NULL,
-  `eligibility_criteria` text DEFAULT NULL,
-  `status` enum('upcoming','ongoing','completed','cancelled') DEFAULT 'upcoming',
+  `organizer` varchar(255) NOT NULL,
+  `venue` varchar(255) NOT NULL,
+  `city` varchar(100) NOT NULL,
+  `start_date` date NOT NULL,
+  `end_date` date NOT NULL,
+  `capacity_per_day` int(11) NOT NULL,
+  `status` enum('draft','live','closed') NOT NULL DEFAULT 'draft',
   `created_at` datetime DEFAULT current_timestamp(),
   `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_nopad_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `campus_drive_applications`
+-- Table structure for table `campus_drive_companies`
 --
 
-CREATE TABLE `campus_drive_applications` (
+CREATE TABLE `campus_drive_companies` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `drive_id` int(10) UNSIGNED NOT NULL,
+  `company_id` int(10) UNSIGNED NOT NULL,
+  `job_roles` text DEFAULT NULL,
+  `criteria` text DEFAULT NULL,
+  `vacancies` int(11) DEFAULT 0,
+  `created_at` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_nopad_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `campus_drive_days`
+--
+
+CREATE TABLE `campus_drive_days` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `drive_id` int(10) UNSIGNED NOT NULL,
+  `date` date NOT NULL,
+  `day_number` int(11) NOT NULL,
+  `capacity` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_nopad_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `campus_applications`
+--
+
+CREATE TABLE `campus_applications` (
   `id` int(10) UNSIGNED NOT NULL,
   `drive_id` int(10) UNSIGNED NOT NULL,
   `student_id` int(10) UNSIGNED NOT NULL,
-  `status` enum('applied','shortlisted','selected','rejected') DEFAULT 'applied',
-  `current_round` varchar(100) DEFAULT 'Initial Screening',
-  `applied_at` datetime DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `status` enum('pending','shortlisted','rejected','selected') NOT NULL DEFAULT 'pending',
+  `applied_at` datetime DEFAULT current_timestamp(),
+  `assigned_day_id` int(10) UNSIGNED DEFAULT NULL,
+  `pref1_company_id` int(10) UNSIGNED DEFAULT NULL,
+  `pref2_company_id` int(10) UNSIGNED DEFAULT NULL,
+  `pref3_company_id` int(10) UNSIGNED DEFAULT NULL,
+  `pref4_company_id` int(10) UNSIGNED DEFAULT NULL,
+  `pref5_company_id` int(10) UNSIGNED DEFAULT NULL,
+  `pref6_company_id` int(10) UNSIGNED DEFAULT NULL,
+  `company_selections` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_nopad_ci;
+
+--
+-- Dumping data for table `campus_drives`
+--
+
+INSERT INTO `campus_drives` (`id`, `title`, `organizer`, `venue`, `city`, `start_date`, `end_date`, `capacity_per_day`, `status`) VALUES
+(1, 'Mega Tech Campus Drive 2024', 'Jobsahi Central Placement Cell', 'Pragati Maidan, Hall 5', 'New Delhi', '2024-11-20', '2024-11-22', 100, 'live');
+
+--
+-- Dumping data for table `campus_drive_companies`
+--
+
+INSERT INTO `campus_drive_companies` (`id`, `drive_id`, `company_id`, `job_roles`, `criteria`, `vacancies`) VALUES
+(1, 1, 1, 'Software Engineer, Quality Analyst', 'B.Tech/BCA with 60% throughout', 10),
+(2, 1, 2, 'Full Stack Developer, UI/UX Designer', 'Strong knowledge of React/Node.js', 15),
+(3, 1, 3, 'Data Scientist Intern, ML Engineer', 'Python, SQL, and Statistics knowledge', 5);
+
+--
+-- Dumping data for table `campus_drive_days`
+--
+
+INSERT INTO `campus_drive_days` (`id`, `drive_id`, `date`, `day_number`, `capacity`) VALUES
+(1, 1, '2024-11-20', 1, 100),
+(2, 1, '2024-11-21', 2, 100),
+(3, 1, '2024-11-22', 3, 100);
+
+--
+-- Dumping data for table `campus_applications`
+--
+
+INSERT INTO `campus_applications` 
+(`id`, `drive_id`, `student_id`, `status`, `pref1_company_id`, `pref2_company_id`, `pref3_company_id`, `assigned_day_id`) 
+VALUES
+(1, 1, 1, 'shortlisted', 1, 2, 3, 1),
+(2, 1, 3, 'pending', 3, 1, 2, 1),
+(3, 1, 4, 'pending', 2, 1, 3, 2),
+(4, 1, 5, 'selected', 1, 3, 2, 1);
 
 --
 -- Indexes for dumped tables
 --
 
-ALTER TABLE `campus_drives`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `recruiter_id` (`recruiter_id`),
-  ADD KEY `institute_id` (`institute_id`);
 
-ALTER TABLE `campus_drive_applications`
+ALTER TABLE `campus_drives`
+  ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `campus_drive_companies`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `drive_id` (`drive_id`),
-  ADD KEY `student_id` (`student_id`);
+  ADD UNIQUE KEY `unique_drive_company` (`drive_id`,`company_id`),
+  ADD KEY `idx_campus_company_id` (`company_id`);
+
+ALTER TABLE `campus_drive_days`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `drive_id` (`drive_id`);
+
+ALTER TABLE `campus_applications`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_student_drive` (`drive_id`,`student_id`),
+  ADD KEY `student_id` (`student_id`),
+  ADD KEY `assigned_day_id` (`assigned_day_id`);
 
 --
 -- AUTO_INCREMENT for dumped tables
 --
 
 ALTER TABLE `campus_drives`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
-ALTER TABLE `campus_drive_applications`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+ALTER TABLE `campus_drive_companies`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+ALTER TABLE `campus_drive_days`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+ALTER TABLE `campus_applications`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- Constraints for dumped tables
 --
 
-ALTER TABLE `campus_drives`
-  ADD CONSTRAINT `fk_drive_recruiter` FOREIGN KEY (`recruiter_id`) REFERENCES `recruiter_profiles` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_drive_institute` FOREIGN KEY (`institute_id`) REFERENCES `institute_profiles` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_drive_course` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_drive_job` FOREIGN KEY (`job_id`) REFERENCES `jobs` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `campus_drive_companies`
+  ADD CONSTRAINT `fk_drive_id` FOREIGN KEY (`drive_id`) REFERENCES `campus_drives` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_company_id` FOREIGN KEY (`company_id`) REFERENCES `recruiter_profiles` (`id`) ON DELETE CASCADE;
 
-ALTER TABLE `campus_drive_applications`
-  ADD CONSTRAINT `campus_drive_applications_ibfk_1` FOREIGN KEY (`drive_id`) REFERENCES `campus_drives` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `campus_drive_applications_ibfk_2` FOREIGN KEY (`student_id`) REFERENCES `student_profiles` (`id`) ON DELETE CASCADE;
+ALTER TABLE `campus_drive_days`
+  ADD CONSTRAINT `fk_day_drive_id` FOREIGN KEY (`drive_id`) REFERENCES `campus_drives` (`id`) ON DELETE CASCADE;
+
+ALTER TABLE `campus_applications`
+  ADD CONSTRAINT `fk_app_drive_id` FOREIGN KEY (`drive_id`) REFERENCES `campus_drives` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_app_student_id` FOREIGN KEY (`student_id`) REFERENCES `student_profiles` (`id`) ON DELETE CASCADE;
 
 COMMIT;
 

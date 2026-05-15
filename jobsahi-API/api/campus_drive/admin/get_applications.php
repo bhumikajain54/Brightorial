@@ -6,6 +6,8 @@ require_once '../../db.php';
 $decoded = authenticateJWT(['admin']);
 
 try {
+    mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+    error_log("Campus Applications List: Starting query");
     $drive_id = isset($_GET['drive_id']) ? intval($_GET['drive_id']) : null;
     $company_id = isset($_GET['company_id']) ? intval($_GET['company_id']) : null; // recruiter_profiles.id
     $campus_drive_company_id = isset($_GET['campus_drive_company_id']) ? intval($_GET['campus_drive_company_id']) : null; // campus_drive_companies.id
@@ -28,6 +30,7 @@ try {
                 u.user_name as student_name,
                 u.email as student_email,
                 u.phone_number as student_phone,
+                sp.profile_image,
                 sp.resume as resume_url,
                 cdd.date as assigned_date,
                 cdd.day_number,
@@ -123,7 +126,35 @@ try {
     $result = $conn->query($sql);
     $applications = [];
     
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
+    $host = $_SERVER['HTTP_HOST'];
+    
+    // Get the base directory dynamically
+    $script_path = str_replace('\\', '/', dirname($_SERVER['PHP_SELF']));
+    $base_dir = rtrim(explode('/api/', $script_path)[0], '/');
+
+    $profile_image_folder = $base_dir . "/api/uploads/profile_images/";
+    
     while ($row = $result->fetch_assoc()) {
+        // ✅ Build profile_image URL (R2 support)
+        $profile_image_url = null;
+        if (!empty($row['profile_image'])) {
+            if (strpos($row['profile_image'], 'http') === 0 && 
+                (strpos($row['profile_image'], 'r2.dev') !== false || 
+                 strpos($row['profile_image'], 'r2.cloudflarestorage.com') !== false)) {
+                $profile_image_url = $row['profile_image'];
+            } else {
+                $clean_img = str_replace(["\\", "/uploads/profile_images/", "./", "../"], "", $row['profile_image']);
+                $img_local = __DIR__ . '/../../../uploads/profile_images/' . $clean_img;
+                if (file_exists($img_local)) {
+                    $profile_image_url = $protocol . $host . $profile_image_folder . $clean_img;
+                } else {
+                    $profile_image_url = $protocol . $host . $profile_image_folder . basename($row['profile_image']);
+                }
+            }
+        }
+        $row['profile_image'] = $profile_image_url;
+
         // Format preferences and find which preference number this company is
         $preferences = [];
         $selected_preference = null;

@@ -25,7 +25,7 @@ try {
             b.id AS batch_id,
             b.name AS batch_name,
             b.end_date,
-            COUNT(DISTINCT sce.student_id) AS student_count,
+            COUNT(DISTINCT sb.student_id) AS student_count,
             DATEDIFF(b.end_date, CURDATE()) AS days_remaining,
             CASE 
                 WHEN b.end_date < CURDATE() THEN 'expired'
@@ -34,7 +34,7 @@ try {
             END AS status
         FROM courses c
         INNER JOIN batches b ON c.id = b.course_id
-        LEFT JOIN student_course_enrollments sce ON c.id = sce.course_id AND b.id = sce.batch_id
+        LEFT JOIN student_batches sb ON b.id = sb.batch_id
         WHERE b.end_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL ? DAY)
             AND c.status = 'active'
         GROUP BY c.id, c.title, b.id, b.name, b.end_date

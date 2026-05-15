@@ -6,6 +6,8 @@ require_once '../../db.php';
 $decoded = authenticateJWT(['admin']);
 
 try {
+    mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+    error_log("Campus Drive List: Starting query");
     $status = isset($_GET['status']) ? mysqli_real_escape_string($conn, $_GET['status']) : null;
     
     // Build query
@@ -20,7 +22,7 @@ try {
             LEFT JOIN campus_drive_days cdd ON cd.id = cdd.drive_id";
     
     $conditions = [];
-    if ($status && in_array($status, ['draft', 'live', 'closed'])) {
+    if ($status && in_array($status, ['upcoming', 'ongoing', 'completed', 'cancelled'])) {
         $conditions[] = "cd.status = '$status'";
     }
     

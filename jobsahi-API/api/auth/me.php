@@ -34,13 +34,18 @@ if (!$decoded_token) {
 
 $user_id = $decoded_token['user_id'];
 
-// ✅ Base URL setup for media paths
+// ✅ Base URL setup for media paths (Dynamic project directory detection)
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
 $host = $_SERVER['HTTP_HOST'];
 
-$resume_base = $protocol . $host . "/jobsahi-API/api/uploads/resume/";
-$company_logo_base = $protocol . $host . "/jobsahi-API/api/uploads/recruiter_logo/";
-$institute_logo_base = $protocol . $host . "/jobsahi-API/api/uploads/institute_logo/";
+// Get the base directory (e.g., /Jobsahi-API)
+$script_path = str_replace('\\', '/', dirname($_SERVER['PHP_SELF']));
+$base_dir = rtrim(explode('/api/', $script_path)[0], '/');
+
+$resume_base = $protocol . $host . $base_dir . "/api/uploads/resume/";
+$company_logo_base = $protocol . $host . $base_dir . "/api/uploads/recruiter_logo/";
+$institute_logo_base = $protocol . $host . $base_dir . "/api/uploads/institute_logo/";
+$profile_image_base = $protocol . $host . $base_dir . "/api/uploads/profile_images/";
 
 // Fetch user basic information
 $user_sql = "SELECT id, user_name, email, phone_number, role, is_verified 
@@ -117,6 +122,24 @@ if ($user_stmt = mysqli_prepare($conn, $user_sql)) {
                         }
                     }
 
+                    // ✅ Build profile_image URL (R2 support)
+                    $profile_image_url = null;
+                    if (!empty($profile_data['profile_image'])) {
+                        if (strpos($profile_data['profile_image'], 'http') === 0 && 
+                            (strpos($profile_data['profile_image'], 'r2.dev') !== false || 
+                             strpos($profile_data['profile_image'], 'r2.cloudflarestorage.com') !== false)) {
+                            $profile_image_url = $profile_data['profile_image'];
+                        } else {
+                            $clean_img = str_replace(["\\", "/uploads/profile_images/", "./", "../"], "", $profile_data['profile_image']);
+                            $img_local = __DIR__ . '/../uploads/profile_images/' . $clean_img;
+                            if (file_exists($img_local)) {
+                                $profile_image_url = $profile_image_base . $clean_img;
+                            } else {
+                                $profile_image_url = $profile_image_base . basename($profile_data['profile_image']);
+                            }
+                        }
+                    }
+
                     $response['data']['profile'] = [
                         "id" => (int)($profile_data['id'] ?? 0),
                         "user_name" => $profile_data['user_name'] ?? null,
@@ -129,6 +152,7 @@ if ($user_stmt = mysqli_prepare($conn, $user_sql)) {
                         "experience" => $profile_data['experience'] ?? null,
                         "graduation_year" => isset($profile_data['graduation_year']) ? (int)$profile_data['graduation_year'] : null,
                         "cgpa" => isset($profile_data['cgpa']) ? (float)$profile_data['cgpa'] : null,
+                        "profile_image" => $profile_image_url,
                         "created_at" => $profile_data['created_at'] ?? null,
                         "modified_at" => $profile_data['modified_at'] ?? null
                     ];
@@ -184,7 +208,8 @@ if ($user_stmt = mysqli_prepare($conn, $user_sql)) {
                         "created_at" => $profile_data['created_at'] ?? null,
                         "modified_at" => $profile_data['modified_at'] ?? null,
                         "deleted_at" => $profile_data['deleted_at'] ?? null,
-                        "admin_action" => $profile_data['admin_action'] ?? null
+                        "admin_action" => $profile_data['admin_action'] ?? null,
+                        "profile_image" => $company_logo_url
                     ];
                 }
                 mysqli_stmt_close($profile_stmt);
@@ -246,13 +271,22 @@ if ($user_stmt = mysqli_prepare($conn, $user_sql)) {
                         "created_at" => $profile_data['created_at'] ?? null,
                         "modified_at" => $profile_data['modified_at'] ?? null,
                         "deleted_at" => $profile_data['deleted_at'] ?? null,
-                        "admin_action" => $profile_data['admin_action'] ?? null
+                        "admin_action" => $profile_data['admin_action'] ?? null,
+                        "profile_image" => $institute_logo_url
                     ];
                 }
                 mysqli_stmt_close($profile_stmt);
             }
             break;
             
+        case 'admin':
+            $response['data']['profile'] = [
+                "id" => 0,
+                "user_name" => $user_data['user_name'],
+                "profile_image" => null // Or a default admin icon URL
+            ];
+            break;
+
         default:
             // Other roles - profile remains null
             break;
